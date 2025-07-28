@@ -9,9 +9,13 @@ import {
   FileText,
   PieChart,
   Cog,
-  LockKeyhole,
+  // LockKeyhole,
   FileChartPie,
   Headset,
+  BadgeCheck,
+  LifeBuoy,
+  ScrollText,
+  Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -41,11 +45,14 @@ import { useState } from "react";
 
 const sectionIcons = {
   Dashboard: PieChart,
-  "SMS": MessageSquareText,
-  "OTP": LockKeyhole,
-  "Reports": FileChartPie,
-  "Settings": Cog,
-  "Credits": CreditCard,
+  "Users": Users,
+  "Messaging": MessageSquareText,
+  Reports: FileChartPie,
+  "Credit & Billing": CreditCard,
+  Approvals: BadgeCheck,
+  "System Settings": Cog,
+  "Audit & Logs": ScrollText,
+  Support: LifeBuoy,
 } as const;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

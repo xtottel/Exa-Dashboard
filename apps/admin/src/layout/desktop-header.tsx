@@ -18,7 +18,7 @@ export function DesktopHeader() {
     <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex">
       {/* Left Side - Branding or Navigation Placeholder */}
       <div className="text-lg font-semibold text-muted-foreground">
-        Sendexa Dashboard
+        Sendexa Admin
       </div>
 
       {/* Right Side - Buttons and Avatar */}

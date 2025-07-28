@@ -2,70 +2,62 @@
   "navMain": [
     {
       "title": "Dashboard",
-      "url": "/dashboard"
+      "url": "/admin"
     },
     {
-      "title": "SMS",
-      "url": "/dashboard/sms",
+      "title": "Users",
+      "url": "/admin/users",
       "items": [
-        { "title": "Send SMS", "url": "/dashboard/sms/send" },
-        { "title": "Sender IDs", "url": "/dashboard/sms/sender-ids" },
-        { "title": "Contacts", "url": "/dashboard/sms/contacts" },
-        { "title": "Templates", "url": "/dashboard/sms/templates" }
+        { "title": "All Users", "url": "/admin/users" },
+        { "title": "Blocked Users", "url": "/admin/users/blocked" },
+        { "title": "Admins", "url": "/admin/users/admins" }
       ]
     },
     {
-      "title": "OTP",
-      "url": "/dashboard/otp",
+      "title": "Messaging",
+      "url": "/admin/services",
       "items": [
-        { "title": "Overview", "url": "/dashboard/otp/overview" },
-        { "title": "Reports", "url": "/dashboard/otp/reports" }
+        { "title": "Send SMS", "url": "/admin/services/sms/send" },
+        { "title": "Sender IDs", "url": "/admin/services/sender-ids" },
+        { "title": "Delivery Logs", "url": "/admin/services/sms/logs" },
+        { "title": "OTP Logs", "url": "/admin/services/otp/logs" }
       ]
     },
     {
       "title": "Reports",
-      "url": "/dashboard/reports",
+      "url": "/admin/reports",
       "items": [
-        {
-          "title": "SMS History",
-          "url": "/dashboard/reports/sms/history"
-        },
-        {
-          "title": "SMS Campaigns",
-          "url": "/dashboard/reports/sms/campaigns"
-        }
+        { "title": "Usage Overview", "url": "/admin/reports/usage" },
+        { "title": "SMS History", "url": "/admin/reports/sms" },
+        { "title": "OTP Statistics", "url": "/admin/reports/otp" },
+        { "title": "Top Users", "url": "/admin/reports/top-users" }
       ]
     },
     {
-      "title": "Credits",
-      "url": "/dashboard/credits",
+      "title": "Credit & Billing",
+      "url": "/admin/credits",
       "items": [
-        {
-          "title": "Balance",
-          "url": "/dashboard/credits/balance"
-        },
-        {
-          "title": "Buy Credits",
-          "url": "/dashboard/credits/buy"
-        },
-        {
-          "title": "Invoices",
-          "url": "/dashboard/credits/invoices"
-        }
+        { "title": "User Balances", "url": "/admin/credits/user-balances" },
+        { "title": "Purchase Logs", "url": "/admin/credits/purchases" },
+        { "title": "Refund Requests", "url": "/admin/credits/refunds" },
+        { "title": "Invoices", "url": "/admin/credits/invoices" }
       ]
     },
     {
-      "title": "Settings",
-      "url": "/dashboard/settings",
+      "title": "Approvals",
+      "url": "/admin/approvals",
       "items": [
-        {
-          "title": "Profile",
-          "url": "/dashboard/settings/profile"
-        },
-        {
-          "title": "API Keys",
-          "url": "/dashboard/settings/api-keys"
-        }
+        { "title": "Sender ID Requests", "url": "/admin/approvals/sender-ids" },
+        { "title": "KYC Submissions", "url": "/admin/approvals/kyc" }
+      ]
+    },
+    {
+      "title": "System Settings",
+      "url": "/admin/settings",
+      "items": [
+        { "title": "API Keys", "url": "/admin/settings/api-keys" },
+        { "title": "Webhooks", "url": "/admin/settings/webhooks" },
+        { "title": "Admin Roles", "url": "/admin/settings/admins" }
       ]
     }
   ]
