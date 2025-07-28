@@ -1,15 +1,16 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardDescription,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+  CardFooter,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -18,11 +19,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "@/components/ui/use-toast"
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { useState } from "react";
+import { UploadCloud } from "lucide-react";
+import { useDropzone } from "react-dropzone";
 
 const profileFormSchema = z.object({
   username: z
@@ -35,83 +47,245 @@ const profileFormSchema = z.object({
     }),
   email: z
     .string({
-      required_error: "Please select an email to display.",
+      required_error: "Please provide an email address.",
     })
     .email(),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  timezone: z.string().optional(),
-})
+  phone: z.string().min(10, {
+    message: "Please enter a valid phone number.",
+  }),
+  company: z.string().min(2, {
+    message: "Company name must be at least 2 characters.",
+  }),
+  businessType: z.string().min(1, {
+    message: "Please select your business type.",
+  }),
+  businessRegistration: z.string().optional(),
+  taxId: z.string().optional(),
+  address: z.string().min(5, {
+    message: "Please enter a valid address.",
+  }),
+  country: z.string().min(1, {
+    message: "Please select your country.",
+  }),
+});
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
-  const form = useForm<ProfileFormValues>({
+  const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: "kwame_tech",
       email: "kwame@example.com",
       phone: "0244123456",
       company: "Tech Solutions GH",
-      timezone: "GMT",
+      businessType: "",
+      businessRegistration: "",
+      taxId: "",
+      address: "123 Business Ave, Accra",
+      country: "GH",
     },
     mode: "onChange",
-  })
+  });
 
-  function onSubmit(data: ProfileFormValues) {
+//  function ProfilePictureUpload() {
+  const [profileImage, setProfileImage] = useState<string | null>("/user.jpg");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const { getRootProps, getInputProps, open } = useDropzone({
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg"],
+    },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024, // 5MB
+    onDrop: async (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      await handleUpload(file);
+    },
+    onDropRejected: () => {
+      toast({
+        title: "File rejected",
+        description: "Please upload an image (PNG, JPG, JPEG) under 5MB",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate upload progress (replace with actual API call)
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 5;
+      });
+    }, 100);
+
+    try {
+      // In a real app, you would upload to your API here
+      // Example:
+      // const formData = new FormData();
+      // formData.append("file", file);
+      // const response = await fetch("/api/upload-profile", {
+      //   method: "POST",
+      //   body: formData,
+      // });
+      // const data = await response.json();
+      // setProfileImage(data.url);
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      clearInterval(interval);
+      setUploadProgress(100);
+
+      // Create a preview URL for the uploaded file
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImage(previewUrl);
+
+      toast({
+        title: "Profile picture updated",
+        description: "Your new profile picture has been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Could not upload your profile picture",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    if (profileImage && profileImage.startsWith("blob:")) {
+      URL.revokeObjectURL(profileImage);
+    }
+    setProfileImage(null);
+    toast({
+      title: "Profile picture removed",
+      description: "Your profile picture has been removed.",
+    });
+  };
+
+  
+  function onSubmitProfile(_data: ProfileFormValues) {
     toast({
       title: "Profile updated successfully",
       description: "Your profile changes have been saved.",
-    })
+    });
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Account Settings</h1>
         <p className="text-muted-foreground">
-          Manage your account settings and personal information
+          Manage your profile, business details, and KYC verification
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Picture</CardTitle>
-          <CardDescription>
-            This will be displayed on your account and in emails.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Profile Section */}
+       <Card>
+      <CardHeader>
+        <CardTitle>Profile Picture</CardTitle>
+        <CardDescription>
+          This will be displayed on your account and in emails.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="/avatars/01.png" alt="@kwame" />
-              <AvatarFallback>KT</AvatarFallback>
+              <AvatarImage 
+                src={profileImage || undefined} 
+                alt="Profile picture" 
+              />
+              <AvatarFallback>
+                {profileImage ? "" : "Upload"}
+              </AvatarFallback>
             </Avatar>
+            
             <div className="space-x-2">
-              <Button variant="outline" size="sm">
-                Upload new
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={open}
+                disabled={isUploading}
+              >
+                {profileImage ? "Change" : "Upload"}
               </Button>
-              <Button variant="ghost" size="sm">
-                Remove
-              </Button>
+              {profileImage && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRemove}
+                  disabled={isUploading}
+                >
+                  Remove
+                </Button>
+              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
 
+          {!profileImage && (
+            <div
+              {...getRootProps()}
+              className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+            >
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center justify-center gap-2">
+                <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                <div className="text-sm text-muted-foreground">
+                  <p>Drag & drop your photo here, or click to select</p>
+                  <p className="text-xs mt-1">Supports: JPG, PNG (Max 5MB)</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="w-full mt-2">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="absolute top-0 left-0 h-full bg-primary transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+
+      {/* Personal & Business Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
+          <CardTitle>Personal & Business Information</CardTitle>
           <CardDescription>
-            Update your personal details here.
+            Update your personal and business details here.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Form {...profileForm}>
+            <form
+              onSubmit={profileForm.handleSubmit(onSubmitProfile)}
+              className="space-y-6"
+            >
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
-                  control={form.control}
+                  control={profileForm.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
@@ -127,7 +301,7 @@ export default function ProfilePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={profileForm.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
@@ -140,7 +314,7 @@ export default function ProfilePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={profileForm.control}
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
@@ -153,11 +327,11 @@ export default function ProfilePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={profileForm.control}
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company</FormLabel>
+                      <FormLabel>Company Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Your company" {...field} />
                       </FormControl>
@@ -166,13 +340,76 @@ export default function ProfilePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
-                  name="timezone"
+                  control={profileForm.control}
+                  name="businessType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Timezone</FormLabel>
+                      <FormLabel>Business Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select business type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="sole">
+                            Sole Proprietorship
+                          </SelectItem>
+                          <SelectItem value="partnership">
+                            Partnership
+                          </SelectItem>
+                          <SelectItem value="llc">
+                            Limited Liability Company
+                          </SelectItem>
+                          <SelectItem value="corporation">
+                            Corporation
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="businessRegistration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Business Registration Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your timezone" {...field} />
+                        <Input placeholder="Registration number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="taxId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tax ID (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Tax identification number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Business Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your business address" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,13 +417,14 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="flex justify-end">
-                <Button type="submit">Update profile</Button>
+                <Button type="submit">Update Information</Button>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
 
+      {/* Password Section */}
       <Card>
         <CardHeader>
           <CardTitle>Change Password</CardTitle>
@@ -215,5 +453,5 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

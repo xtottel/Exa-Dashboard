@@ -6,27 +6,21 @@ import {
   CardContent,
   CardDescription,
   CardFooter,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import {
-  CreditCard,
-  Smartphone,
-  Banknote,
-  ArrowRight,
-  Check,
-} from "lucide-react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+} from "@/components/ui/select";
+import { CreditCard, Smartphone, ArrowRight, Check } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 const creditPackages = [
   {
@@ -53,11 +47,11 @@ const creditPackages = [
     credits: 20000,
     bonus: 5000,
   },
-]
+];
 
 export default function BuyCreditsPage() {
-  const [selectedPackage, setSelectedPackage] = useState("2")
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [selectedPackage, setSelectedPackage] = useState("2");
+  const [paymentMethod, setPaymentMethod] = useState("card");
 
   return (
     <div className="space-y-6">
@@ -72,9 +66,7 @@ export default function BuyCreditsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Credit Packages</CardTitle>
-            <CardDescription>
-              Choose from our prepaid packages
-            </CardDescription>
+            <CardDescription>Choose from our prepaid packages</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -90,7 +82,9 @@ export default function BuyCreditsPage() {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="font-bold">GHS {pkg.amount.toFixed(2)}</div>
+                      <div className="font-bold">
+                        GHS {pkg.amount.toFixed(2)}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {pkg.credits.toLocaleString()} credits
                       </div>
@@ -127,15 +121,16 @@ export default function BuyCreditsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Payment Method</CardTitle>
-            <CardDescription>
-              How would you like to pay?
-            </CardDescription>
+            <CardDescription>How would you like to pay?</CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup
+              // value={paymentMethod}
+              // onValueChange={setPaymentMethod}
+              // className="flex items-center justify-between col-2 gap-4"
               value={paymentMethod}
-              onValueChange={setPaymentMethod}
-              className="grid gap-4"
+      onValueChange={setPaymentMethod}
+      className="grid grid-cols-2 gap-4"
             >
               <div>
                 <RadioGroupItem
@@ -148,9 +143,10 @@ export default function BuyCreditsPage() {
                   className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                 >
                   <CreditCard className="mb-2 h-6 w-6" />
-                  Credit/Debit Card
+                  Bank Card
                 </Label>
               </div>
+
               <div>
                 <RadioGroupItem
                   value="mobile"
@@ -165,30 +161,15 @@ export default function BuyCreditsPage() {
                   Mobile Money
                 </Label>
               </div>
-              <div>
-                <RadioGroupItem
-                  value="bank"
-                  id="bank"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="bank"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                >
-                  <Banknote className="mb-2 h-6 w-6" />
-                  Bank Transfer
-                </Label>
-              </div>
             </RadioGroup>
+
+            
 
             {paymentMethod === "card" && (
               <div className="mt-6 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="card-number">Card Number</Label>
-                  <Input
-                    id="card-number"
-                    placeholder="1234 5678 9012 3456"
-                  />
+                  <Input id="card-number" placeholder="1234 5678 9012 3456" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -214,44 +195,15 @@ export default function BuyCreditsPage() {
                     <SelectContent>
                       <SelectItem value="mtn">MTN Mobile Money</SelectItem>
                       <SelectItem value="vodafone">Vodafone Cash</SelectItem>
-                      <SelectItem value="airteltigo">AirtelTigo Money</SelectItem>
+                      <SelectItem value="airteltigo">
+                        AirtelTigo Money
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="mobile-number">Mobile Number</Label>
-                  <Input
-                    id="mobile-number"
-                    placeholder="0244123456"
-                  />
-                </div>
-              </div>
-            )}
-
-            {paymentMethod === "bank" && (
-              <div className="mt-6 space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Make a transfer to:
-                </p>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Bank</p>
-                      <p>Ghana Commercial Bank</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Account Number</p>
-                      <p>1234567890</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Account Name</p>
-                      <p>SMS Service GH</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Branch</p>
-                      <p>Accra Main</p>
-                    </div>
-                  </div>
+                  <Input id="mobile-number" placeholder="0244123456" />
                 </div>
               </div>
             )}
@@ -261,13 +213,18 @@ export default function BuyCreditsPage() {
               <div className="flex justify-between">
                 <span>Package</span>
                 <span className="font-medium">
-                  GHS {creditPackages.find(p => p.id === selectedPackage)?.amount.toFixed(2)}
+                  GHS{" "}
+                  {creditPackages
+                    .find((p) => p.id === selectedPackage)
+                    ?.amount.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Credits</span>
                 <span className="font-medium">
-                  {creditPackages.find(p => p.id === selectedPackage)?.credits.toLocaleString()}
+                  {creditPackages
+                    .find((p) => p.id === selectedPackage)
+                    ?.credits.toLocaleString()}
                 </span>
               </div>
               {/* {creditPackages.find(p => p.id === selectedPackage)?.bonus > 0 && (
@@ -281,7 +238,10 @@ export default function BuyCreditsPage() {
               <div className="border-t pt-2 flex justify-between font-bold">
                 <span>Total</span>
                 <span>
-                  GHS {creditPackages.find(p => p.id === selectedPackage)?.amount.toFixed(2)}
+                  GHS{" "}
+                  {creditPackages
+                    .find((p) => p.id === selectedPackage)
+                    ?.amount.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -292,5 +252,5 @@ export default function BuyCreditsPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
