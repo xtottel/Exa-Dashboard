@@ -100,10 +100,10 @@ export default function ProfilePage() {
     },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB
-    onDrop: async (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      await handleUpload(file);
-    },
+    // onDrop: async (acceptedFiles) => {
+    //   const file = acceptedFiles[0];
+    //   await handleUpload(file);
+    // },
     onDropRejected: () => {
       toast({
         title: "File rejected",
