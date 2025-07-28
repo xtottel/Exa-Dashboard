@@ -6,6 +6,15 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle, Search, Edit, Trash2, CheckCircle2, XCircle } from "lucide-react"
 import { useState } from "react"
+import { toast } from "react-hot-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 export default function SenderIdPage() {
   const [senderIds, setSenderIds] = useState([
@@ -16,11 +25,26 @@ export default function SenderIdPage() {
   ])
 
   const [newSenderId, setNewSenderId] = useState("")
-  const [isAdding, setIsAdding] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState<number | null>(null)
 
   const handleAddSenderId = () => {
-    if (newSenderId.trim() === "") return
-    
+    if (newSenderId.trim() === "") {
+      toast.error("Sender ID cannot be empty")
+      return
+    }
+
+    if (newSenderId.length < 3) {
+      toast.error("Sender ID must be at least 3 characters")
+      return
+    }
+
+    // Check if sender ID already exists
+    if (senderIds.some(sid => sid.name === newSenderId.toUpperCase())) {
+      toast.error("This Sender ID is already registered")
+      return
+    }
+
     const newId = {
       id: senderIds.length + 1,
       name: newSenderId.toUpperCase(),
@@ -30,56 +54,70 @@ export default function SenderIdPage() {
     
     setSenderIds([...senderIds, newId])
     setNewSenderId("")
-    setIsAdding(false)
+    setIsDialogOpen(false)
+    toast.success("Sender ID submitted for approval")
   }
 
   const handleDelete = (id: number) => {
-    setSenderIds(senderIds.filter(sid => sid.id !== id))
+    setIsDeleting(id)
+    toast.promise(
+      new Promise((resolve) => {
+        setTimeout(() => {
+          setSenderIds(senderIds.filter(sid => sid.id !== id))
+          resolve("success")
+        }, 1000)
+      }),
+      {
+        loading: 'Deleting Sender ID...',
+        success: 'Sender ID deleted successfully',
+        error: 'Error deleting Sender ID',
+      }
+    ).finally(() => setIsDeleting(null))
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Sender ID Management</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Sender IDs</h1>
           <p className="text-muted-foreground">
             Register and manage your SMS sender identifiers
           </p>
         </div>
-        <Button onClick={() => setIsAdding(true)}>
+        <Button onClick={() => setIsDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Sender ID
         </Button>
       </div>
 
-      {isAdding && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Register New Sender ID</CardTitle>
-            <CardDescription>
+      {/* Add Sender ID Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Register New Sender ID</DialogTitle>
+            <DialogDescription>
               Sender IDs must be 3-11 characters, alphanumeric (no spaces or special characters)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter sender ID (e.g. COMPANY)"
-                value={newSenderId}
-                onChange={(e) => setNewSenderId(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
-                maxLength={11}
-                className="max-w-[300px]"
-              />
-              <Button onClick={handleAddSenderId}>Submit</Button>
-              <Button variant="outline" onClick={() => setIsAdding(false)}>
-                Cancel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Enter sender ID (e.g. COMPANY)"
+              value={newSenderId}
+              onChange={(e) => setNewSenderId(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+              maxLength={11}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddSenderId}>Submit for Approval</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
-        <CardHeader>
+        {/* <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>Your Sender IDs</CardTitle>
@@ -95,7 +133,7 @@ export default function SenderIdPage() {
               />
             </div>
           </div>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent>
           <Table>
             <TableHeader>
@@ -121,7 +159,7 @@ export default function SenderIdPage() {
                       }
                     >
                       {senderId.status === "approved" ? (
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        <CheckCircle2 className="h-3 w-3 mr-1 text-green-600" />
                       ) : senderId.status === "pending" ? (
                         <span className="h-3 w-3 mr-1 rounded-full bg-yellow-500" />
                       ) : (
@@ -133,7 +171,12 @@ export default function SenderIdPage() {
                   <TableCell>{senderId.createdAt}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" disabled={senderId.status !== "approved"}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        disabled={senderId.status !== "approved"}
+                        onClick={() => toast("Editing is only available for approved Sender IDs", { icon: "ℹ️" })}
+                      >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
@@ -141,10 +184,10 @@ export default function SenderIdPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(senderId.id)}
-                        disabled={senderId.status === "approved"}
+                        disabled={senderId.status === "approved" || isDeleting === senderId.id}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        {isDeleting === senderId.id ? "Deleting..." : "Delete"}
                       </Button>
                     </div>
                   </TableCell>
@@ -160,7 +203,7 @@ export default function SenderIdPage() {
         </CardFooter>
       </Card>
 
-      {/* <Card className="bg-muted/50">
+      <Card className="bg-muted/50">
         <CardHeader>
           <CardTitle>Sender ID Guidelines</CardTitle>
         </CardHeader>
@@ -174,7 +217,7 @@ export default function SenderIdPage() {
             <li>Rejected Sender IDs can be modified and resubmitted</li>
           </ul>
         </CardContent>
-      </Card> */}
+      </Card>
     </div>
   )
 }

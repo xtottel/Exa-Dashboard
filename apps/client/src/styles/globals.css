@@ -6,23 +6,6 @@ body {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  /* Custom scrollbar for sidebar */
-  .sidebar-scrollbar::-webkit-scrollbar {
-    @apply w-1.5;
-  }
-  .sidebar-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  .sidebar-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/20 rounded-full;
-  }
-}
-
 @layer base {
   :root {
     /* Light theme colors */
@@ -32,75 +15,53 @@ body {
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 224.3 76.3% 48%; /* More vibrant primary */
+
+    --primary: 224.3 76.3% 48%;
     --primary-foreground: 0 0% 98%;
+
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
+
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
+
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 9%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 144.9 80.4% 10.4%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 40 100% 15%;
+
+    --info: 202 100% 60%;
+    --info-foreground: 210 100% 20%;
+
+    --pending: 27 96% 54%;
+    --pending-foreground: 28 100% 18%;
+
+    --approved: 148 64% 41%;
+    --approved-foreground: 150 100% 12%;
+
+    --rejected: 350 75% 50%;
+    --rejected-foreground: 350 80% 15%;
+
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 224.3 76.3% 48%; /* Matching primary */
-    
-    /* Chart colors */
+    --ring: 224.3 76.3% 48%;
+
+    --radius: 0.5rem;
+
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    
-    --radius: 0.5rem;
-    
-    /* Sidebar specific colors */
-    --sidebar-background: 240 5.9% 10%; /* Darker sidebar */
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%; /* Same as primary */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 3.7% 15.9%; /* Darker accent */
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 224.3 76.3% 48%; /* Same as primary */
-    
-    /* New sidebar state colors */
-    --sidebar-hover: 240 3.7% 20.9%;
-    --sidebar-active: 224.3 76.3% 48% / 0.2;
-    --sidebar-indicator: 224.3 76.3% 48%;
-  }
 
-  .dark {
-    /* Dark theme colors */
-    --background: 240 10% 3.9%; /* Darker background */
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 224.3 76.3% 48%; /* Same vibrant primary */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 224.3 76.3% 48%; /* Matching primary */
-    
-    /* Dark chart colors */
-    --chart-1: 220 70% 60%; /* Brighter in dark mode */
-    --chart-2: 160 60% 55%;
-    --chart-3: 30 80% 65%;
-    --chart-4: 280 65% 70%;
-    --chart-5: 340 75% 65%;
-    
-    /* Sidebar colors remain the same in dark mode */
+    /* Sidebar colors */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -109,37 +70,112 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 224.3 76.3% 48%;
-    
-    /* State colors */
     --sidebar-hover: 240 3.7% 20.9%;
     --sidebar-active: 224.3 76.3% 48% / 0.2;
     --sidebar-indicator: 224.3 76.3% 48%;
   }
-}
 
-@layer base {
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 224.3 76.3% 48%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142.1 70% 45%;
+    --success-foreground: 144.9 100% 10.4%;
+
+    --warning: 38 100% 50%;
+    --warning-foreground: 38 100% 15%;
+
+    --info: 202 100% 70%;
+    --info-foreground: 210 100% 20%;
+
+    --pending: 27 96% 60%;
+    --pending-foreground: 28 100% 18%;
+
+    --approved: 148 64% 50%;
+    --approved-foreground: 150 100% 12%;
+
+    --rejected: 350 75% 60%;
+    --rejected-foreground: 350 80% 15%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 224.3 76.3% 48%;
+
+    --chart-1: 220 70% 60%;
+    --chart-2: 160 60% 55%;
+    --chart-3: 30 80% 65%;
+    --chart-4: 280 65% 70%;
+    --chart-5: 340 75% 65%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 224.3 76.3% 48%;
+    --sidebar-hover: 240 3.7% 20.9%;
+    --sidebar-active: 224.3 76.3% 48% / 0.2;
+    --sidebar-indicator: 224.3 76.3% 48%;
+  }
+
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
-    @apply antialiased; /* Smoother font rendering */
+    @apply bg-background text-foreground antialiased;
   }
-  
-  /* Custom sidebar classes */
+
   .sidebar {
     @apply bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))];
   }
-  
+
   .sidebar-item {
     @apply text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-hover))];
   }
-  
+
   .sidebar-item-active {
     @apply bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-primary))];
   }
-  
+
   .sidebar-indicator {
     @apply bg-[hsl(var(--sidebar-indicator))];
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full;
   }
 }

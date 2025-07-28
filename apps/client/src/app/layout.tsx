@@ -2,7 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Outfit } from "next/font/google"
 import "@/styles/globals.css"
-import { Toaster } from "@/components/ui/toaster"
+//import { Toaster } from "@/components/ui/toaster"
+import  { Toaster } from 'react-hot-toast';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -68,7 +69,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.variable} font-sans antialiased`}>{children}</body>
-      <Toaster />
+      {/* <Toaster /> */}
+      <Toaster
+  position="top-center"
+  reverseOrder={false}
+/>
     </html>
   )
 }

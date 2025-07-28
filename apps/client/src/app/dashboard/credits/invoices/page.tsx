@@ -116,17 +116,7 @@ export default function InvoicesPage() {
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="credits">SMS Credits</SelectItem>
-                <SelectItem value="subscription">Subscription</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
               Date Range
@@ -191,22 +181,6 @@ export default function InvoicesPage() {
           </div>
         </CardFooter>
       </Card>
-
-      {/* Empty state example */}
-      {/* <Card>
-        <CardHeader>
-          <CardTitle>No invoices found</CardTitle>
-          <CardDescription>
-            You don't have any invoices yet. When you make a purchase, it will appear here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button>
-            <Receipt className="mr-2 h-4 w-4" />
-            Make a Purchase
-          </Button>
-        </CardContent>
-      </Card> */}
     </div>
   )
 }

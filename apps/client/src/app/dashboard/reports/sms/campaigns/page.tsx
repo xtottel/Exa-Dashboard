@@ -120,17 +120,7 @@ export default function SmsCampaignsPage() {
                 <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="promotional">Promotional</SelectItem>
-                <SelectItem value="transactional">Transactional</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-              </SelectContent>
-            </Select>
+            
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
               Date Range

@@ -129,18 +129,6 @@ export default function SmsHistoryPage() {
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Sender IDs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sender IDs</SelectItem>
-                <SelectItem value="COMPANY">COMPANY</SelectItem>
-                <SelectItem value="PROMO">PROMO</SelectItem>
-                <SelectItem value="ALERTS">ALERTS</SelectItem>
-                <SelectItem value="NEWS">NEWS</SelectItem>
-              </SelectContent>
-            </Select>
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
               Date Range
