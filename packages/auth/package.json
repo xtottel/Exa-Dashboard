@@ -1,0 +1,20 @@
+{
+  "name": "@repos/auth",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "jose": "^6.0.12",
+    "next": "15.2.4",
+    "@repo/db": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2",
+    "@types/node": "^22.15.3"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
