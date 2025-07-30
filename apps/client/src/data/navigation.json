@@ -2,69 +2,69 @@
   "navMain": [
     {
       "title": "Dashboard",
-      "url": "/dashboard"
+      "url": "/home"
     },
     {
       "title": "SMS",
-      "url": "/dashboard/sms",
+      "url": "/home/sms",
       "items": [
-        { "title": "Send SMS", "url": "/dashboard/sms/send" },
-        { "title": "Sender IDs", "url": "/dashboard/sms/sender-ids" },
-        { "title": "Contacts", "url": "/dashboard/sms/contacts" },
-        { "title": "Templates", "url": "/dashboard/sms/templates" }
+        { "title": "Send SMS", "url": "/home/sms/send" },
+        { "title": "Sender IDs", "url": "/home/sms/sender-ids" },
+        { "title": "Contacts", "url": "/home/sms/contacts" },
+        { "title": "Templates", "url": "/home/sms/templates" }
       ]
     },
     {
       "title": "OTP",
-      "url": "/dashboard/otp",
+      "url": "/home/otp",
       "items": [
-        { "title": "Overview", "url": "/dashboard/otp/overview" },
-        { "title": "Reports", "url": "/dashboard/otp/reports" }
+        { "title": "Overview", "url": "/home/otp/overview" },
+        { "title": "Reports", "url": "/home/otp/reports" }
       ]
     },
     {
       "title": "Reports",
-      "url": "/dashboard/reports",
+      "url": "/home/reports",
       "items": [
         {
           "title": "SMS History",
-          "url": "/dashboard/reports/sms/history"
+          "url": "/home/reports/sms/history"
         },
         {
           "title": "SMS Campaigns",
-          "url": "/dashboard/reports/sms/campaigns"
+          "url": "/home/reports/sms/campaigns"
         }
       ]
     },
     {
       "title": "Credits",
-      "url": "/dashboard/credits",
+      "url": "/home/credits",
       "items": [
         {
           "title": "Balance",
-          "url": "/dashboard/credits/balance"
+          "url": "/home/credits/balance"
         },
         {
           "title": "Buy Credits",
-          "url": "/dashboard/credits/buy"
+          "url": "/home/credits/buy"
         },
         {
           "title": "Invoices",
-          "url": "/dashboard/credits/invoices"
+          "url": "/home/credits/invoices"
         }
       ]
     },
     {
       "title": "Settings",
-      "url": "/dashboard/settings",
+      "url": "/home/settings",
       "items": [
         {
           "title": "Profile",
-          "url": "/dashboard/settings/profile"
+          "url": "/home/settings/profile"
         },
         {
           "title": "API Keys",
-          "url": "/dashboard/settings/api-keys"
+          "url": "/home/settings/api-keys"
         }
       ]
     }

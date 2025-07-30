@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 export function DesktopHeader() {
@@ -53,7 +53,7 @@ export function DesktopHeader() {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
-            {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
+
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-600 hover:text-red-700">
               Log out
@@ -64,4 +64,3 @@ export function DesktopHeader() {
     </header>
   );
 }
-
