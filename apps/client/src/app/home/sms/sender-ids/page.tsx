@@ -1,12 +1,25 @@
 "use client";
-import { Card, CardHeader, CardTitle, CardContent,  CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { PlusCircle,  Edit, Trash2, CheckCircle2, XCircle } from "lucide-react"
-import { useState } from "react"
-import { toast } from "react-hot-toast"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { PlusCircle, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -14,66 +27,113 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+
+type SenderId = {
+  id: string;
+  status: "approved" | "pending" | "rejected";
+  name: string;
+  atWhitelisted: "Submitted" | "Not Submitted";
+  createdAt: string;
+};
+
+const getStatusBadge = (status: SenderId["status"]) => {
+  return (
+    <Badge variant="status" status={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 export default function SenderIdPage() {
-  const [senderIds, setSenderIds] = useState([
-    { id: 1, name: "COMPANY", status: "approved", createdAt: "2023-10-15" },
-    { id: 2, name: "SERVICES", status: "pending", createdAt: "2023-11-02" },
-    { id: 3, name: "ALERTS", status: "rejected", createdAt: "2023-09-28" },
-    { id: 4, name: "NOTIFY", status: "approved", createdAt: "2023-08-10" },
-  ])
+  const [senderIds, setSenderIds] = useState<SenderId[]>([
+    {
+      id: "1",
+      status: "approved",
+      name: "SENDEXA",
+      atWhitelisted: "Submitted",
+      createdAt: "2023-06-15 09:30:45",
+    },
+    {
+      id: "2",
+      status: "pending",
+      name: "MYAPP",
+      atWhitelisted: "Not Submitted",
+      createdAt: "2023-06-16 10:15:22",
+    },
+    {
+      id: "3",
+      status: "rejected",
+      name: "ACMEINC",
+      atWhitelisted: "Not Submitted",
+      createdAt: "2023-06-17 14:45:10",
+    },
+    {
+      id: "4",
+      status: "approved",
+      name: "QUICKPAY",
+      atWhitelisted: "Submitted",
+      createdAt: "2023-06-18 11:20:33",
+    },
+    {
+      id: "5",
+      status: "approved",
+      name: "EZSHOP",
+      atWhitelisted: "Submitted",
+      createdAt: "2023-06-19 16:05:47",
+    },
+  ]);
 
-  const [newSenderId, setNewSenderId] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<number | null>(null)
+  const [newSenderId, setNewSenderId] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleAddSenderId = () => {
     if (newSenderId.trim() === "") {
-      toast.error("Sender ID cannot be empty")
-      return
+      toast.error("Sender ID cannot be empty");
+      return;
     }
 
     if (newSenderId.length < 3) {
-      toast.error("Sender ID must be at least 3 characters")
-      return
+      toast.error("Sender ID must be at least 3 characters");
+      return;
     }
 
-    // Check if sender ID already exists
-    if (senderIds.some(sid => sid.name === newSenderId.toUpperCase())) {
-      toast.error("This Sender ID is already registered")
-      return
+    if (senderIds.some((sid) => sid.name === newSenderId.toUpperCase())) {
+      toast.error("This Sender ID is already registered");
+      return;
     }
 
-    const newId = {
-      id: senderIds.length + 1,
+    const newId: SenderId = {
+      id: (senderIds.length + 1).toString(),
       name: newSenderId.toUpperCase(),
       status: "pending",
-      createdAt: new Date().toISOString().split('T')[0]
-    }
-    
-    setSenderIds([...senderIds, newId])
-    setNewSenderId("")
-    setIsDialogOpen(false)
-    toast.success("Sender ID submitted for approval")
-  }
+      atWhitelisted: "Not Submitted",
+      createdAt: new Date().toLocaleString(),
+    };
 
-  const handleDelete = (id: number) => {
-    setIsDeleting(id)
+    setSenderIds([...senderIds, newId]);
+    setNewSenderId("");
+    setIsDialogOpen(false);
+    toast.success("Sender ID submitted for approval");
+  };
+
+  const handleDelete = (id: string) => {
+    setIsDeleting(id);
     toast.promise(
       new Promise((resolve) => {
         setTimeout(() => {
-          setSenderIds(senderIds.filter(sid => sid.id !== id))
-          resolve("success")
-        }, 1000)
+          setSenderIds(senderIds.filter((sid) => sid.id !== id));
+          resolve("success");
+        }, 1000);
       }),
       {
-        loading: 'Deleting Sender ID...',
-        success: 'Sender ID deleted successfully',
-        error: 'Error deleting Sender ID',
+        loading: "Deleting Sender ID...",
+        success: "Sender ID deleted successfully",
+        error: "Error deleting Sender ID",
       }
-    ).finally(() => setIsDeleting(null))
-  }
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -90,20 +150,22 @@ export default function SenderIdPage() {
         </Button>
       </div>
 
-      {/* Add Sender ID Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Register New Sender ID</DialogTitle>
             <DialogDescription>
-              Sender IDs must be 3-11 characters, alphanumeric (no spaces or special characters)
+              Sender IDs must be 3-11 characters, alphanumeric (no spaces or
+              special characters)
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
               placeholder="Enter sender ID (e.g. COMPANY)"
               value={newSenderId}
-              onChange={(e) => setNewSenderId(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+              onChange={(e) =>
+                setNewSenderId(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))
+              }
               maxLength={11}
             />
           </div>
@@ -117,77 +179,39 @@ export default function SenderIdPage() {
       </Dialog>
 
       <Card>
-        {/* <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Your Sender IDs</CardTitle>
-              <CardDescription>
-                {senderIds.length} registered sender IDs
-              </CardDescription>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search sender IDs..."
-                className="pl-9 w-full md:w-[300px]"
-              />
-            </div>
-          </div>
-        </CardHeader> */}
         <CardContent className="p-0">
           <Table>
-            <TableHeader >
+            <TableHeader>
               <TableRow>
                 <TableHead>Sender ID</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>AT Whitelisted</TableHead>
                 <TableHead>Date Registered</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead >Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {senderIds.map((senderId) => (
                 <TableRow key={senderId.id}>
                   <TableCell className="font-medium">{senderId.name}</TableCell>
+                  <TableCell>{getStatusBadge(senderId.status)}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        senderId.status === "approved"
-                          ? "success"
-                          : senderId.status === "pending"
-                          ? "warning"
-                          : "destructive"
-                      }
-                    >
-                      {senderId.status === "approved" ? (
-                        <CheckCircle2 className="h-3 w-3 mr-1 text-green-600" />
-                      ) : senderId.status === "pending" ? (
-                        <span className="h-3 w-3 mr-1 rounded-full bg-yellow-500" />
-                      ) : (
-                        <XCircle className="h-3 w-3 mr-1" />
-                      )}
-                      {senderId.status.charAt(0).toUpperCase() + senderId.status.slice(1)}
-                    </Badge>
+                    <Badge variant="outline">{senderId.atWhitelisted}</Badge>
                   </TableCell>
                   <TableCell>{senderId.createdAt}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        disabled={senderId.status !== "approved"}
-                        onClick={() => toast("Editing is only available for approved Sender IDs", { icon: "ℹ️" })}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                  <TableCell >
+                    <div >
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(senderId.id)}
-                        disabled={senderId.status === "approved" || isDeleting === senderId.id}
+                        disabled={
+                          senderId.status === "approved" ||
+                          isDeleting === senderId.id
+                        }
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
-                        {isDeleting === senderId.id ? "Deleting..." : "Delete"}
+                        {isDeleting === senderId.id}
                       </Button>
                     </div>
                   </TableCell>
@@ -198,7 +222,8 @@ export default function SenderIdPage() {
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
           <div className="text-sm text-muted-foreground">
-            Showing <strong>1-{senderIds.length}</strong> of <strong>{senderIds.length}</strong> sender IDs
+            Showing <strong>1-{senderIds.length}</strong> of{" "}
+            <strong>{senderIds.length}</strong> sender IDs
           </div>
         </CardFooter>
       </Card>
@@ -219,5 +244,5 @@ export default function SenderIdPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -5,16 +5,16 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Activity,
   CheckCircle2,
   Clock,
   XCircle,
-  Smartphone,
   ArrowUpRight,
-} from "lucide-react"
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -25,31 +25,111 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-} from 'recharts'
-import { Badge } from "@/components/ui/badge"
+} from "recharts";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const otpData = [
-  { name: 'Jan', sent: 4000, verified: 3800, failed: 200 },
-  { name: 'Feb', sent: 3000, verified: 2800, failed: 200 },
-  { name: 'Mar', sent: 5000, verified: 4800, failed: 200 },
-  { name: 'Apr', sent: 2780, verified: 2500, failed: 280 },
-  { name: 'May', sent: 3890, verified: 3700, failed: 190 },
-  { name: 'Jun', sent: 2390, verified: 2200, failed: 190 },
-]
+  { name: "Jan", sent: 4000, verified: 3800, failed: 200 },
+  { name: "Feb", sent: 3000, verified: 2800, failed: 200 },
+  { name: "Mar", sent: 5000, verified: 4800, failed: 200 },
+  { name: "Apr", sent: 2780, verified: 2500, failed: 280 },
+  { name: "May", sent: 3890, verified: 3700, failed: 190 },
+  { name: "Jun", sent: 2390, verified: 2200, failed: 190 },
+];
 
-const recentOtps = [
-  { id: '1', phone: '0244123456', status: 'verified', time: '2 mins', method: 'SMS' },
-  { id: '2', phone: '0209876543', status: 'failed', time: '5 mins', method: 'WhatsApp' },
-  { id: '3', phone: '0543210987', status: 'pending', time: '3 mins', method: 'SMS' },
-  { id: '4', phone: '0276543210', status: 'verified', time: '1 min', method: 'SMS' },
-]
+
+type OtpReports = {
+  cost: number;
+  code: string;
+  status: "delivered" | "failed" | "pending";
+  codeStatus: "active" | "expired" | "used";
+  date: string;
+  channel: string;
+  id: string;
+  senderId: string;
+  phone: string;
+};
+
+const otpReports: OtpReports[] = [
+  {
+    id: "1",
+    phone: "0244123456",
+    status: "delivered",
+    code: "280620",
+    senderId: "Sendexa",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-15",
+    codeStatus: "expired",
+  },
+  {
+    id: "2",
+    phone: "0209876543",
+    status: "delivered",
+    code: "123456",
+    senderId: "MyApp",
+    cost: 0.05,
+    channel: "WhatsApp",
+    date: "2023-06-16",
+    codeStatus: "expired",
+  },
+  {
+    id: "3",
+    phone: "0543210987",
+    status: "delivered",
+    code: "654321",
+    senderId: "Acme Inc",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-17",
+    codeStatus: "used",
+  },
+  {
+    id: "4",
+    phone: "0271122334",
+    status: "pending",
+    code: "987654",
+    senderId: "Sendexa",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-18",
+    codeStatus: "active",
+  },
+  {
+    id: "5",
+    phone: "0245566778",
+    status: "delivered",
+    code: "456789",
+    senderId: "MyApp",
+    cost: 0.05,
+    channel: "WhatsApp",
+    date: "2023-06-19",
+    codeStatus: "used",
+  },
+];
+
+const getStatusBadge = (status: OtpReports["status"]) => {
+  return (
+    <Badge variant="status" status={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 export default function OtpOverviewPage() {
   return (
@@ -103,9 +183,7 @@ export default function OtpOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">23,210</div>
-            <p className="text-xs text-muted-foreground">
-              94.5% success rate
-            </p>
+            <p className="text-xs text-muted-foreground">94.5% success rate</p>
           </CardContent>
         </Card>
         <Card className="bg-yellow-100">
@@ -115,9 +193,7 @@ export default function OtpOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">658</div>
-            <p className="text-xs text-muted-foreground">
-              Expiring soon
-            </p>
+            <p className="text-xs text-muted-foreground">Expiring soon</p>
           </CardContent>
         </Card>
         <Card className="bg-red-100">
@@ -127,9 +203,7 @@ export default function OtpOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">700</div>
-            <p className="text-xs text-muted-foreground">
-              2.8% failure rate
-            </p>
+            <p className="text-xs text-muted-foreground">2.8% failure rate</p>
           </CardContent>
         </Card>
       </div>
@@ -161,61 +235,88 @@ export default function OtpOverviewPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={otpData.map(d => ({
-                name: d.name,
-                rate: (d.verified / d.sent * 100).toFixed(1)
-              }))}>
+              <LineChart
+                data={otpData.map((d) => ({
+                  name: d.name,
+                  rate: ((d.verified / d.sent) * 100).toFixed(1),
+                }))}
+              >
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="name" />
                 <YAxis unit="%" />
                 <Tooltip formatter={(value) => [`${value}%`, "Success rate"]} />
-                <Line type="monotone" dataKey="rate" stroke="#ff7300" strokeWidth={2} />
+                <Line
+                  type="monotone"
+                  dataKey="rate"
+                  stroke="#ff7300"
+                  strokeWidth={2}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Recent OTPs</h1>
+        <p className="text-muted-foreground">
+          Last 5 OTP verification attempts
+        </p>
+      </div>
+
+      {/* Reports Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recent OTPs</CardTitle>
-          <CardDescription>
-            Last 50 OTP verification attempts
-          </CardDescription>
+        <CardHeader className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Phone Number</TableHead>
+                <TableHead>Code</TableHead>
+                <TableHead>Sender ID</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Channel</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Code Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {otpReports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.phone}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{report.code}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{report.senderId}</Badge>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{report.channel}</Badge>
+                  </TableCell>
+                  <TableCell>GHS {report.cost.toFixed(2)}</TableCell>
+                  <TableCell>{report.date}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{report.codeStatus}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentOtps.map((otp) => (
-              <div key={otp.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-full bg-secondary">
-                    <Smartphone className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{otp.phone}</p>
-                    <p className="text-sm text-muted-foreground">{otp.method}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Badge
-                    variant={
-                      otp.status === 'verified' 
-                        ? 'success' 
-                        : otp.status === 'failed' 
-                        ? 'destructive' 
-                        : 'warning'
-                    }
-                  >
-                    {otp.status}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">{otp.time}</span>
-                </div>
-              </div>
-            ))}
+
+        <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+          <div className="text-sm text-muted-foreground">
+            Showing <strong>1-{otpReports.length}</strong> of{" "}
+            <strong>{otpReports.length}</strong>
           </div>
-        </CardContent>
+          <div className="space-x-2">
+            <Button variant="outline" size="sm">
+              View All
+            </Button>
+          </div>
+        </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

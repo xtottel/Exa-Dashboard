@@ -1,12 +1,9 @@
 import {
   Card,
   CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
   CardFooter,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -14,76 +11,88 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Search,
   Filter,
   Download,
   ChevronDown,
   RefreshCw,
-  Check,
-  X,
-  Clock,
-  MoreVertical,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
+  Inbox,
+  // MoreVertical,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
-const smsHistory = [
+
+type smsHistory = {
+  message: string;
+  cost: number;
+  status: "delivered" | "pending" | "failed";
+  date: string;
+  type: string;
+  id: string;
+  senderId: string;
+  recipient: string;
+};
+
+const smsHistory: smsHistory[] = [
   {
     id: "1",
     recipient: "0244123456",
+    type: "SMS API",
     message: "Your OTP is 123456",
     status: "delivered",
-    senderId: "COMPANY",
+    senderId: "Sendexa",
     cost: 0.05,
     date: "2023-06-15 09:30:45",
   },
   {
     id: "2",
     recipient: "0209876543",
+    type: "Outgoing",
     message: "Special offer: 20% off today!",
     status: "failed",
-    senderId: "PROMO",
+    senderId: "Sendexa",
     cost: 0.05,
     date: "2023-06-15 10:15:22",
   },
   {
     id: "3",
     recipient: "0543210987",
+    type: "Outgoing",
     message: "Your appointment is confirmed for tomorrow at 2pm",
     status: "pending",
-    senderId: "ALERTS",
+    senderId: "Sendexa",
     cost: 0.05,
     date: "2023-06-14 14:45:33",
   },
   {
     id: "4",
-    recipient: "Bulk (250)",
-    message: "New product launch next week! Stay tuned...",
-    status: "delivered",
-    senderId: "NEWS",
-    cost: 12.50,
-    date: "2023-06-14 16:22:18",
-  },
-  {
-    id: "5",
     recipient: "0276543210",
+    type: "Outgoing",
     message: "Your payment of GHS 150.00 was received",
     status: "delivered",
-    senderId: "PAYMENT",
+    senderId: "Sendexa",
     cost: 0.05,
     date: "2023-06-13 11:05:49",
   },
-]
+];
+
+const getStatusBadge = (status: smsHistory["status"]) => {
+  return (
+    <Badge variant="status" status={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 export default function SmsHistoryPage() {
   return (
@@ -143,57 +152,43 @@ export default function SmsHistoryPage() {
         <CardHeader className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow >
                 <TableHead>Recipient</TableHead>
                 <TableHead>Message</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Sender ID</TableHead>
                 <TableHead>Cost</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead className="w-[40px]"></TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {smsHistory.map((sms) => (
                 <TableRow key={sms.id}>
-                  <TableCell className="font-medium">
-                    {sms.recipient}
-                  </TableCell>
+                  <TableCell className="font-medium">{sms.recipient}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
                     {sms.message}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        sms.status === 'delivered'
-                          ? 'success'
-                          : sms.status === 'failed'
-                          ? 'destructive'
-                          : 'warning'
-                      }
-                      className="flex items-center gap-1"
-                    >
-                      {sms.status === 'delivered' ? (
-                        <Check className="h-3 w-3" />
-                      ) : sms.status === 'failed' ? (
-                        <X className="h-3 w-3" />
-                      ) : (
-                        <Clock className="h-3 w-3" />
-                      )}
-                      {sms.status}
-                    </Badge>
+                    <Badge variant="outline">{sms.type}</Badge>
                   </TableCell>
+                  <TableCell>{getStatusBadge(sms.status)}</TableCell>
+
                   <TableCell>
                     <Badge variant="outline">{sms.senderId}</Badge>
                   </TableCell>
-                  <TableCell>GHS {sms.cost.toFixed(2)}</TableCell>
+                  <TableCell>GHS {sms.cost}</TableCell>
                   <TableCell>{sms.date}</TableCell>
+
                   <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
+                    <Button variant="default" className="h-8 gap-2">
+                      <Inbox className="h-4 w-4" />
+                      Inbox
                     </Button>
                   </TableCell>
                 </TableRow>
+                
               ))}
             </TableBody>
           </Table>
@@ -213,38 +208,6 @@ export default function SmsHistoryPage() {
           </div>
         </CardFooter>
       </Card>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Messages</CardTitle>
-            <CardDescription>All time sent messages</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">24,568</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Delivery Rate</CardTitle>
-            <CardDescription>Successful deliveries</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">96.2%</div>
-            <Progress value={96.2} className="h-2 mt-2" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Cost</CardTitle>
-            <CardDescription>All time SMS spending</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">GHS 1,245.80</div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
-  )
+  );
 }

@@ -1,12 +1,5 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -14,71 +7,95 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table"
-import {
-  Download,
-  Filter,
-  Search,
-  ChevronDown,
-  RefreshCw,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/table";
+import { Download, Filter, Search, ChevronDown, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
-const otpReports = [
+type OtpReports = {
+  cost: number;
+  code: string;
+  status: "delivered" | "failed" | "pending";
+  codeStatus: "active" | "expired" | "used";
+  date: string;
+  channel: string;
+  id: string;
+  senderId: string;
+  phone: string;
+};
+
+const otpReports: OtpReports[] = [
   {
     id: "1",
     phone: "0244123456",
-    status: "verified",
-    method: "SMS",
-    createdAt: "2023-06-15 09:30:45",
-    verifiedAt: "2023-06-15 09:31:12",
-    expiresAt: "2023-06-15 09:35:45",
+    status: "delivered",
+    code: "280620",
+    senderId: "Sendexa",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-15",
+    codeStatus: "expired",
   },
   {
     id: "2",
     phone: "0209876543",
-    status: "failed",
-    method: "WhatsApp",
-    createdAt: "2023-06-15 10:15:22",
-    verifiedAt: null,
-    expiresAt: "2023-06-15 10:20:22",
+    status: "delivered",
+    code: "123456",
+    senderId: "MyApp",
+    cost: 0.05,
+    channel: "WhatsApp",
+    date: "2023-06-16",
+    codeStatus: "expired",
   },
   {
     id: "3",
     phone: "0543210987",
-    status: "expired",
-    method: "SMS",
-    createdAt: "2023-06-14 14:45:33",
-    verifiedAt: null,
-    expiresAt: "2023-06-14 14:50:33",
+    status: "delivered",
+    code: "654321",
+    senderId: "Acme Inc",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-17",
+    codeStatus: "used",
   },
   {
     id: "4",
-    phone: "0276543210",
-    status: "verified",
-    method: "SMS",
-    createdAt: "2023-06-14 16:22:18",
-    verifiedAt: "2023-06-14 16:23:05",
-    expiresAt: "2023-06-14 16:27:18",
+    phone: "0271122334",
+    status: "pending",
+    code: "987654",
+    senderId: "Sendexa",
+    cost: 0.05,
+    channel: "SMS",
+    date: "2023-06-18",
+    codeStatus: "active",
   },
   {
     id: "5",
-    phone: "0551234567",
-    status: "failed",
-    method: "SMS",
-    createdAt: "2023-06-13 11:05:49",
-    verifiedAt: null,
-    expiresAt: "2023-06-13 11:10:49",
+    phone: "0245566778",
+    status: "delivered",
+    code: "456789",
+    senderId: "MyApp",
+    cost: 0.05,
+    channel: "WhatsApp",
+    date: "2023-06-19",
+    codeStatus: "used",
   },
-]
+];
+
+const getStatusBadge = (status: OtpReports["status"]) => {
+  return (
+    <Badge variant="status" status={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 export default function OtpReportsPage() {
   return (
@@ -119,9 +136,9 @@ export default function OtpReportsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline">
@@ -140,12 +157,13 @@ export default function OtpReportsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Phone Number</TableHead>
+                <TableHead>Code</TableHead>
+                <TableHead>Sender ID</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Verified At</TableHead>
-                <TableHead>Expires At</TableHead>
-                <TableHead>Duration</TableHead>
+                <TableHead>Channel</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Code Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,34 +171,19 @@ export default function OtpReportsPage() {
                 <TableRow key={report.id}>
                   <TableCell className="font-medium">{report.phone}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        report.status === 'verified' 
-                          ? 'success' 
-                          : report.status === 'failed' 
-                          ? 'destructive' 
-                          : 'warning'
-                      }
-                    >
-                      {report.status}
-                    </Badge>
+                    <Badge variant="outline">{report.code}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{report.method}</Badge>
+                    <Badge variant="outline">{report.senderId}</Badge>
                   </TableCell>
-                  <TableCell>{report.createdAt}</TableCell>
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
                   <TableCell>
-                    {report.verifiedAt || (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                    <Badge variant="outline">{report.channel}</Badge>
                   </TableCell>
-                  <TableCell>{report.expiresAt}</TableCell>
+                  <TableCell>GHS {report.cost.toFixed(2)}</TableCell>
+                  <TableCell>{report.date}</TableCell>
                   <TableCell>
-                    {report.verifiedAt
-                      ? "27s" // This would be calculated in a real app
-                      : report.status === 'expired'
-                      ? "Expired"
-                      : "—"}
+                    <Badge variant="outline">{report.codeStatus}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -190,7 +193,7 @@ export default function OtpReportsPage() {
         <CardFooter className="flex items-center justify-between border-t px-6 py-4">
           <div className="text-sm text-muted-foreground">
             Showing <strong>1-{otpReports.length}</strong> of{" "}
-            <strong>{otpReports.length}</strong> OTP attempts
+            <strong>{otpReports.length}</strong> OTP Records
           </div>
           <div className="space-x-2">
             <Button variant="outline" size="sm">
@@ -202,48 +205,6 @@ export default function OtpReportsPage() {
           </div>
         </CardFooter>
       </Card>
-
-      {/* Analytics Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Verification Rate</CardTitle>
-            <CardDescription>Successful verifications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">94.5%</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Average Time</CardTitle>
-            <CardDescription>Time to verify</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">23s</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Failure Reasons</CardTitle>
-            <CardDescription>Top causes of failures</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span>Expired</span>
-              <span className="font-medium">58%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Wrong Code</span>
-              <span className="font-medium">32%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Delivery Failed</span>
-              <span className="font-medium">10%</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
-  )
+  );
 }
