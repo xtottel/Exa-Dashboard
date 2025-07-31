@@ -53,13 +53,6 @@ export default function ContactsPage() {
       date: "2023-06-15",
       description: "High-value clients with premium status",
     },
-    {
-      id: "3",
-      name: "Newsletter Subscribers",
-      recipients: 4200,
-      date: "2023-06-20",
-      description: "Users subscribed to our monthly newsletter",
-    },
   ]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

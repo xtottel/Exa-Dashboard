@@ -10,7 +10,6 @@
       "items": [
         { "title": "Send SMS", "url": "/home/sms/send" },
         { "title": "Sender IDs", "url": "/home/sms/sender-ids" },
-        { "title": "Contacts", "url": "/home/sms/contacts" },
         { "title": "Templates", "url": "/home/sms/templates" }
       ]
     },
@@ -29,10 +28,6 @@
         {
           "title": "SMS History",
           "url": "/home/reports/sms/history"
-        },
-        {
-          "title": "SMS Campaigns",
-          "url": "/home/reports/sms/campaigns"
         }
       ]
     },
@@ -41,30 +36,12 @@
       "url": "/home/credits",
       "items": [
         {
-          "title": "Balance",
-          "url": "/home/credits/balance"
-        },
-        {
           "title": "Buy Credits",
           "url": "/home/credits/buy"
         },
         {
           "title": "Invoices",
           "url": "/home/credits/invoices"
-        }
-      ]
-    },
-    {
-      "title": "Settings",
-      "url": "/home/settings",
-      "items": [
-        {
-          "title": "Profile",
-          "url": "/home/settings/profile"
-        },
-        {
-          "title": "API Keys",
-          "url": "/home/settings/api-keys"
         }
       ]
     }

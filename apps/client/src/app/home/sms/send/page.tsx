@@ -22,15 +22,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon,  Plus,  Check, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+import {Plus, X } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 
 export default function SendSmsPage() {
@@ -39,15 +32,11 @@ export default function SendSmsPage() {
   const [newRecipient, setNewRecipient] = useState("")
   const [senderId, setSenderId] = useState("")
   const [template, setTemplate] = useState("")
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [isScheduling, setIsScheduling] = useState(false)
   const [characterCount, setCharacterCount] = useState(0)
   const [messageParts, setMessageParts] = useState(1)
 
   const senderIds = [
-    { id: "COMPANY", status: "approved" },
-    { id: "SERVICE", status: "approved" },
-    { id: "ALERTS", status: "approved" },
+    { id: "Sendexa", status: "approved" },
   ]
 
   const templates = [
@@ -95,7 +84,6 @@ export default function SendSmsPage() {
       message,
       recipients,
       senderId,
-      schedule: date,
       template
     })
   }
@@ -229,47 +217,6 @@ export default function SendSmsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Schedule</Label>
-                  <div className="flex items-center gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                          disabled={!isScheduling}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={setDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Button
-                      type="button"
-                      variant={isScheduling ? "default" : "outline"}
-                      size="icon"
-                      onClick={() => {
-                        setIsScheduling(!isScheduling)
-                        if (!isScheduling) setDate(undefined)
-                      }}
-                    >
-                      <Check className={cn("h-4 w-4", !isScheduling && "hidden")} />
-                      <CalendarIcon className={cn("h-4 w-4", isScheduling && "hidden")} />
-                    </Button>
-                  </div>
                 </div>
               </CardContent>
             </Card>

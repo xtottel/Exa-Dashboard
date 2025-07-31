@@ -1,12 +1,5 @@
-import {
-  Card,
-  CardHeader,
-  // CardTitle,
-  // CardContent,
-  // CardDescription,
-  CardFooter,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -14,67 +7,71 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table"
-import {
-  Download,
-  Search,
-  Filter,
-  ChevronDown,
-  FileText,
-  // Receipt,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/table";
+import { Download, Search, Filter, ChevronDown, ReceiptCent, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
-const invoices = [
+const invoices: invoices[] = [
   {
     id: "INV-2023-06-001",
     date: "2023-06-15",
-    amount: 50.00,
+    amount: 50.0,
     status: "paid",
     type: "SMS Credits",
-    downloadUrl: "#",
   },
   {
     id: "INV-2023-05-003",
     date: "2023-05-28",
-    amount: 25.00,
+    amount: 25.0,
     status: "paid",
     type: "SMS Credits",
-    downloadUrl: "#",
   },
   {
     id: "INV-2023-05-002",
     date: "2023-05-15",
-    amount: 100.00,
+    amount: 100.0,
     status: "paid",
     type: "SMS Credits",
-    downloadUrl: "#",
   },
   {
     id: "INV-2023-05-001",
     date: "2023-05-01",
-    amount: 10.00,
+    amount: 10.0,
     status: "paid",
     type: "SMS Credits",
-    downloadUrl: "#",
   },
   {
     id: "INV-2023-04-002",
     date: "2023-04-22",
-    amount: 50.00,
+    amount: 50.0,
     status: "paid",
     type: "SMS Credits",
-    downloadUrl: "#",
   },
-]
+];
+
+type invoices = {
+  id: string;
+  date: string;
+  amount: number;
+  status: "paid" | "pending" | "failed";
+  type: string;
+};
+
+const getStatusBadge = (status: invoices["status"]) => {
+  return (
+    <Badge variant="status" status={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 export default function InvoicesPage() {
   return (
@@ -116,7 +113,7 @@ export default function InvoicesPage() {
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
               Date Range
@@ -137,6 +134,7 @@ export default function InvoicesPage() {
                 <TableHead>Type</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
+                
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -145,20 +143,19 @@ export default function InvoicesPage() {
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <ReceiptCent className="h-4 w-4 text-muted-foreground" />
                       {invoice.id}
                     </div>
                   </TableCell>
                   <TableCell>{invoice.date}</TableCell>
                   <TableCell>{invoice.type}</TableCell>
                   <TableCell>GHS {invoice.amount.toFixed(2)}</TableCell>
+
+                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                   <TableCell>
-                    <Badge variant="success">{invoice.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" className="h-8">
-                      <Download className="h-4 w-4 mr-2" />
-                      PDF
+                    <Button variant="default" className="h-8 gap-2">
+                      <Eye className="h-4 w-4" />
+                     View
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -182,5 +179,5 @@ export default function InvoicesPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

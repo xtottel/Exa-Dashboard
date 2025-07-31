@@ -259,10 +259,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white">
-                Manage Business
+                Account Settings
               </p>
               <p className="text-xs text-white/70">
-                View settings, billing, team & more
+                View settings, Api Keys, team & more
               </p>
             </div>
             <ChevronRight className="size-4 text-white/50" />

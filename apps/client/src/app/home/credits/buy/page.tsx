@@ -17,41 +17,130 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, Smartphone, ArrowRight, Check } from "lucide-react";
+import { CreditCard, Smartphone, ArrowRight, Check, Wallet } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 
-const creditPackages = [
-  {
-    id: "1",
-    amount: 10,
-    credits: 2000,
-    bonus: 0,
-  },
-  {
-    id: "2",
-    amount: 25,
-    credits: 5000,
-    bonus: 500,
-  },
-  {
-    id: "3",
-    amount: 50,
-    credits: 10000,
-    bonus: 1500,
-  },
-  {
-    id: "4",
-    amount: 100,
-    credits: 20000,
-    bonus: 5000,
-  },
-];
+type CreditPackage = {
+  id: string;
+  amount: number;
+  credits: number;
+  bonus: number;
+  pricePerUnit: number;
+};
 
 export default function BuyCreditsPage() {
   const [selectedPackage, setSelectedPackage] = useState("2");
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [customAmount, setCustomAmount] = useState("");
+  const [calculatedCredits, setCalculatedCredits] = useState(0);
+  const [pricePerUnit, setPricePerUnit] = useState(0.028);
+  const [calculatedAmount, setCalculatedAmount] = useState(0);
+
+  const creditPackages: CreditPackage[] = useMemo(() => [
+   {
+      id: "1",
+      amount: 83.972, // 2999 * 0.028
+      credits: 2999,
+      bonus: 0,
+      pricePerUnit: 0.028
+    },
+    {
+      id: "2",
+      amount: 260, // 10000 * 0.026
+      credits: 10000,
+      bonus: 0,
+      pricePerUnit: 0.026
+    },
+    {
+      id: "3",
+      amount: 240.024, // 10001 * 0.024
+      credits: 10001,
+      bonus: 0,
+      pricePerUnit: 0.024
+    },
+    {
+      id: "4",
+      amount: 1760, // 80000 * 0.022
+      credits: 80000,
+      bonus: 0,
+      pricePerUnit: 0.022
+    },
+  ], []);
+
+  useEffect(() => {
+    if (customAmount) {
+      const amount = parseFloat(customAmount);
+      if (isNaN(amount) || amount <= 0) return;
+
+      let credits = 0;
+      let price = 0.028;
+      
+      if (amount >= 83.972) {
+        // Calculate based on tiered pricing
+        if (amount >= 1760) {
+          // Above 80,000 SMS
+          credits = Math.floor(amount / 0.022);
+          price = 0.022;
+        } else if (amount >= 240.024) {
+          // 10,001-80,000 SMS
+          credits = Math.floor(amount / 0.024);
+          price = 0.024;
+        } else if (amount >= 260) {
+          // 3,000-10,000 SMS
+          credits = Math.floor(amount / 0.026);
+          price = 0.026;
+        } else {
+          // 1-2,999 SMS
+          credits = Math.floor(amount / 0.028);
+          price = 0.028;
+        }
+      } else {
+        // Below minimum package (83.972)
+        credits = Math.floor(amount / 0.030);
+        price = 0.030;
+      }
+
+      setPricePerUnit(price);
+      setCalculatedCredits(credits);
+      setCalculatedAmount(amount);
+    }
+  }, [customAmount]);
+
+  const handleCalculate = () => {
+    if (!customAmount) {
+      toast.error("Please enter an amount");
+      return;
+    }
+
+    const amount = parseFloat(customAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    toast.success(`Calculated: ${calculatedCredits} credits at ₵${pricePerUnit.toFixed(3)}/unit`);
+  };
+
+  const handlePayment = () => {
+    const pkg = creditPackages.find((p) => p.id === selectedPackage);
+    if (customAmount) {
+      toast.success(`Payment of GHS ${calculatedAmount.toFixed(2)} for ${calculatedCredits} credits initiated`);
+    } else if (pkg) {
+      toast.success(`Payment of GHS ${pkg.amount.toFixed(2)} for ${pkg.credits} credits initiated`);
+    }
+  };
+
+  const currentPackage = creditPackages.find((p) => p.id === selectedPackage);
+  const totalCredits = customAmount 
+    ? calculatedCredits 
+    : (currentPackage ? currentPackage.credits : 0);
+  const totalAmount = customAmount 
+    ? calculatedAmount 
+    : (currentPackage ? currentPackage.amount : 0);
+
 
   return (
     <div className="space-y-6">
@@ -73,9 +162,12 @@ export default function BuyCreditsPage() {
               {creditPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  onClick={() => setSelectedPackage(pkg.id)}
+                  onClick={() => {
+                    setSelectedPackage(pkg.id);
+                    setCustomAmount("");
+                  }}
                   className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    selectedPackage === pkg.id
+                    selectedPackage === pkg.id && !customAmount
                       ? "border-primary bg-primary/5"
                       : "hover:bg-muted/50"
                   }`}
@@ -88,6 +180,9 @@ export default function BuyCreditsPage() {
                       <div className="text-sm text-muted-foreground">
                         {pkg.credits.toLocaleString()} credits
                       </div>
+                      <div className="text-xs text-muted-foreground">
+                        ₵{pkg.pricePerUnit.toFixed(3)}/unit
+                      </div>
                     </div>
                     {pkg.bonus > 0 && (
                       <Badge variant="secondary">
@@ -95,7 +190,7 @@ export default function BuyCreditsPage() {
                       </Badge>
                     )}
                   </div>
-                  {selectedPackage === pkg.id && (
+                  {selectedPackage === pkg.id && !customAmount && (
                     <div className="mt-2 flex justify-end">
                       <Check className="h-4 w-4 text-primary" />
                     </div>
@@ -105,15 +200,33 @@ export default function BuyCreditsPage() {
             </div>
 
             <div className="mt-6 space-y-2">
-              <Label htmlFor="custom-amount">Or enter custom amount</Label>
+              <Label htmlFor="custom-amount">Or enter custom amount (GHS)</Label>
               <div className="flex gap-2">
                 <Input
                   id="custom-amount"
-                  placeholder="Enter amount"
+                  placeholder="Enter amount (GHS)"
                   type="number"
+                  min="0"
+                  step="0.01"
+                  value={customAmount}
+                  onChange={(e) => {
+                    setCustomAmount(e.target.value);
+                    setSelectedPackage("");
+                  }}
                 />
-                <Button variant="outline">Calculate</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCalculate}
+                  disabled={!customAmount}
+                >
+                  Calculate
+                </Button>
               </div>
+              {customAmount && (
+                <div className="text-sm text-muted-foreground">
+                  {calculatedCredits.toLocaleString()} credits at ₵{pricePerUnit.toFixed(3)}/unit
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -125,12 +238,9 @@ export default function BuyCreditsPage() {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              // value={paymentMethod}
-              // onValueChange={setPaymentMethod}
-              // className="flex items-center justify-between col-2 gap-4"
               value={paymentMethod}
-      onValueChange={setPaymentMethod}
-      className="grid grid-cols-2 gap-4"
+              onValueChange={setPaymentMethod}
+              className="grid md:grid-cols-3 grid-cols-2 gap-4"
             >
               <div>
                 <RadioGroupItem
@@ -161,9 +271,21 @@ export default function BuyCreditsPage() {
                   Mobile Money
                 </Label>
               </div>
+              <div>
+                <RadioGroupItem
+                  value="wallet"
+                  id="wallet"
+                  className="peer sr-only"
+                />
+                <Label
+                  htmlFor="wallet"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                >
+                  <Wallet className="mb-2 h-6 w-6" />
+                  Digital Wallet
+                </Label>
+              </div>
             </RadioGroup>
-
-            
 
             {paymentMethod === "card" && (
               <div className="mt-6 space-y-4">
@@ -207,45 +329,68 @@ export default function BuyCreditsPage() {
                 </div>
               </div>
             )}
+
+            {paymentMethod === "wallet" && (
+              <div className="mt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label>Wallet Provider</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select wallet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hubtel">Hubtel</SelectItem>
+                      <SelectItem value="zeepay">Zeepay</SelectItem>
+                      <SelectItem value="kowri">Kowri</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="wallet-number">Mobile Number</Label>
+                  <Input id="wallet-number" placeholder="0244123456" />
+                </div>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col items-start gap-4">
             <div className="w-full space-y-2">
-              <div className="flex justify-between">
-                <span>Package</span>
-                <span className="font-medium">
-                  GHS{" "}
-                  {creditPackages
-                    .find((p) => p.id === selectedPackage)
-                    ?.amount.toFixed(2)}
-                </span>
-              </div>
+              {customAmount ? (
+                <>
+                  <div className="flex justify-between">
+                    <span>Custom Amount</span>
+                    <span className="font-medium">GHS {parseFloat(customAmount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Price Per Unit</span>
+                    <span className="font-medium">₵{pricePerUnit.toFixed(3)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between">
+                  <span>Package</span>
+                  <span className="font-medium">
+                    GHS {currentPackage?.amount.toFixed(2)}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Credits</span>
-                <span className="font-medium">
-                  {creditPackages
-                    .find((p) => p.id === selectedPackage)
-                    ?.credits.toLocaleString()}
-                </span>
+                <span className="font-medium">{totalCredits.toLocaleString()}</span>
               </div>
-              {/* {creditPackages.find(p => p.id === selectedPackage)?.bonus > 0 && (
+              {/* {!customAmount && currentPackage?.bonus > 0 && (
                 <div className="flex justify-between">
                   <span>Bonus Credits</span>
                   <span className="font-medium text-green-600">
-                    +{creditPackages.find(p => p.id === selectedPackage)?.bonus.toLocaleString()}
+                    +{currentPackage.bonus.toLocaleString()}
                   </span>
                 </div>
               )} */}
               <div className="border-t pt-2 flex justify-between font-bold">
                 <span>Total</span>
-                <span>
-                  GHS{" "}
-                  {creditPackages
-                    .find((p) => p.id === selectedPackage)
-                    ?.amount.toFixed(2)}
-                </span>
+                <span>GHS {totalAmount.toFixed(2)}</span>
               </div>
             </div>
-            <Button className="w-full">
+            <Button className="w-full" onClick={handlePayment}>
               Complete Payment <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>

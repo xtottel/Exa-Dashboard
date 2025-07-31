@@ -7,7 +7,6 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";;
 
 import { useState } from "react";
 import { UploadCloud } from "lucide-react";
@@ -60,7 +52,7 @@ const profileFormSchema = z.object({
     message: "Please select your business type.",
   }),
   businessRegistration: z.string().optional(),
-  taxId: z.string().optional(),
+  nationalId: z.string().optional(),
   address: z.string().min(5, {
     message: "Please enter a valid address.",
   }),
@@ -80,9 +72,6 @@ export default function ProfilePage() {
       email: "kwame@example.com",
       phone: "0244123456",
       company: "Tech Solutions GH",
-      businessType: "",
-      businessRegistration: "",
-      taxId: "",
       address: "123 Business Ave, Accra",
       country: "GH",
     },
@@ -91,8 +80,8 @@ export default function ProfilePage() {
 
 //  function ProfilePictureUpload() {
   const [profileImage, setProfileImage] = useState<string | null>("/user.jpg");
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading] = useState(false);
+  const [uploadProgress] = useState(0);
 
   const { getRootProps, getInputProps, open } = useDropzone({
     accept: {
@@ -113,56 +102,6 @@ export default function ProfilePage() {
     },
   });
 
-  const handleUpload = async (file: File) => {
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    // Simulate upload progress (replace with actual API call)
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 100);
-
-    try {
-      // In a real app, you would upload to your API here
-      // Example:
-      // const formData = new FormData();
-      // formData.append("file", file);
-      // const response = await fetch("/api/upload-profile", {
-      //   method: "POST",
-      //   body: formData,
-      // });
-      // const data = await response.json();
-      // setProfileImage(data.url);
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      clearInterval(interval);
-      setUploadProgress(100);
-
-      // Create a preview URL for the uploaded file
-      const previewUrl = URL.createObjectURL(file);
-      setProfileImage(previewUrl);
-
-      toast({
-        title: "Profile picture updated",
-        description: "Your new profile picture has been saved.",
-      });
-    } catch (error) {
-      toast({
-        title: "Upload failed",
-        description: "Could not upload your profile picture",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleRemove = () => {
     if (profileImage && profileImage.startsWith("blob:")) {
@@ -176,7 +115,8 @@ export default function ProfilePage() {
   };
 
   
-  function onSubmitProfile(_data: ProfileFormValues) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function onSubmitProfile(data: ProfileFormValues) {
     toast({
       title: "Profile updated successfully",
       description: "Your profile changes have been saved.",
@@ -188,7 +128,7 @@ export default function ProfilePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Account Settings</h1>
         <p className="text-muted-foreground">
-          Manage your profile, business details, and KYC verification
+          Manage your profile.
         </p>
       </div>
 
@@ -269,12 +209,12 @@ export default function ProfilePage() {
       </CardContent>
     </Card>
 
-      {/* Personal & Business Information */}
+      {/* Personal  Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Personal & Business Information</CardTitle>
+          <CardTitle>Personal Information</CardTitle>
           <CardDescription>
-            Update your personal and business details here.
+            Update your personal  details here.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -339,62 +279,17 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
+               
+               
                 <FormField
                   control={profileForm.control}
-                  name="businessType"
+                  name="nationalId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Business Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select business type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="sole">
-                            Sole Proprietorship
-                          </SelectItem>
-                          <SelectItem value="partnership">
-                            Partnership
-                          </SelectItem>
-                          <SelectItem value="llc">
-                            Limited Liability Company
-                          </SelectItem>
-                          <SelectItem value="corporation">
-                            Corporation
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={profileForm.control}
-                  name="businessRegistration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Registration Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Registration number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={profileForm.control}
-                  name="taxId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tax ID (Optional)</FormLabel>
+                      <FormLabel>National ID (Optional)</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Tax identification number"
+                          placeholder="GHA-XXXXXXXXX-X"
                           {...field}
                         />
                       </FormControl>
@@ -407,7 +302,7 @@ export default function ProfilePage() {
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Business Address</FormLabel>
+                      <FormLabel>Address</FormLabel>
                       <FormControl>
                         <Input placeholder="Your business address" {...field} />
                       </FormControl>
@@ -433,7 +328,7 @@ export default function ProfilePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 max-w-md">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="current">Current password</Label>
               <Input id="current" type="password" />
@@ -442,10 +337,7 @@ export default function ProfilePage() {
               <Label htmlFor="new">New password</Label>
               <Input id="new" type="password" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm">Confirm new password</Label>
-              <Input id="confirm" type="password" />
-            </div>
+          
             <div className="flex justify-end">
               <Button>Update password</Button>
             </div>
