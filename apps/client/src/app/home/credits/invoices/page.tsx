@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const invoices: invoices[] = [
   {
@@ -141,7 +142,7 @@ export default function InvoicesPage() {
             <TableBody>
               {invoices.map((invoice) => (
                 <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium ">
                     <div className="flex items-center gap-2">
                       <ReceiptCent className="h-4 w-4 text-muted-foreground" />
                       {invoice.id}
@@ -153,9 +154,11 @@ export default function InvoicesPage() {
 
                   <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                   <TableCell>
-                    <Button variant="default" className="h-8 gap-2">
-                      <Eye className="h-4 w-4" />
-                     View
+                    <Button variant="default" className="h-8 gap-2" asChild>
+                      <Link href={`/home/credits/invoices/view/${invoice.id}`}>
+                        <Eye className="h-4 w-4" />
+                         View
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>

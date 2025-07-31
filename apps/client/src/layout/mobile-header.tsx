@@ -92,7 +92,7 @@ export function MobileHeader() {
               </p> */}
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/home/settings/profile")}>
               <User className="mr-2 size-4" />
               Profile
             </DropdownMenuItem>

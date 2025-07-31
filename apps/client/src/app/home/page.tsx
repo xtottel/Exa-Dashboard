@@ -5,9 +5,9 @@ import {
   Activity, 
   Send, 
   Smartphone, 
-  Users,
   CircleCheck,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from "lucide-react"
 import {
   BarChart,
@@ -22,7 +22,7 @@ import {
   Cell
 } from 'recharts'
 import { useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
 const messageData = [
   { name: 'Jan', sent: 4000, delivered: 3800 },
   { name: 'Feb', sent: 3000, delivered: 2800 },
@@ -42,6 +42,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
 export default function DashboardHome() {
     const [currentDateTime, setCurrentDateTime] = useState<string>("");
+    const router = useRouter();
 
   useEffect(() => {
     // Update date time every minute
@@ -70,12 +71,6 @@ export default function DashboardHome() {
   
   return (
     <div className="space-y-6">
-      {/* <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">SMS & OTP Dashboard</h1>
-        <p className="text-muted-foreground">
-          Manage your messaging services and monitor performance
-        </p>
-      </div> */}
 
       {/* Dynamic date/time display */}
 
@@ -189,15 +184,16 @@ export default function DashboardHome() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader >
+            <CardTitle className="flex items-center gap-2" >
+              
               <Send className="h-5 w-5" />
               Send SMS
             </CardTitle>
             <CardDescription>Compose and send messages</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">New Message</Button>
+            <Button className="w-full" onClick={() => router.push("/home/sms/send")}>New Message</Button>
           </CardContent>
         </Card>
         <Card>
@@ -209,7 +205,7 @@ export default function DashboardHome() {
             <CardDescription>Configure one-time passwords</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => router.push("/home/otp/overview")}>
               Manage OTP
             </Button>
           </CardContent>
@@ -217,13 +213,13 @@ export default function DashboardHome() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Contacts
+              <CreditCard className="h-5 w-5" />
+              Credits
             </CardTitle>
-            <CardDescription>Manage recipient groups</CardDescription>
+            <CardDescription>Buy Credit or Topup Balance</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => router.push("/home/credits/buy")}>
               View Groups
             </Button>
           </CardContent>

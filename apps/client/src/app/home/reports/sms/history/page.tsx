@@ -1,8 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -30,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-
+import Link from "next/link";
 
 type smsHistory = {
   message: string;
@@ -152,7 +148,7 @@ export default function SmsHistoryPage() {
         <CardHeader className="p-0">
           <Table>
             <TableHeader>
-              <TableRow >
+              <TableRow>
                 <TableHead>Recipient</TableHead>
                 <TableHead>Message</TableHead>
                 <TableHead>Type</TableHead>
@@ -181,14 +177,22 @@ export default function SmsHistoryPage() {
                   <TableCell>GHS {sms.cost}</TableCell>
                   <TableCell>{sms.date}</TableCell>
 
-                  <TableCell>
+                  {/* <TableCell>
                     <Button variant="default" className="h-8 gap-2">
                       <Inbox className="h-4 w-4" />
                       Inbox
                     </Button>
+                  </TableCell> */}
+
+                  <TableCell>
+                    <Button variant="default" className="h-8 gap-2" asChild>
+                      <Link href={`/home/reports/sms/view/${sms.id}`}>
+                        <Inbox className="h-4 w-4" />
+                        Inbox
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
-                
               ))}
             </TableBody>
           </Table>
