@@ -1,19 +1,65 @@
-import React from 'react';
-import Head from 'next/head';
+// app/settings/page.tsx
+import { Card } from "@/components/ui/card";
+//import { Button } from "@/components/ui/button";
+import { User, Building, Key, Shield } from "lucide-react";
+import Link from "next/link";
 
-const PageName: React.FC = () => {
+export default function SettingsPage() {
+  const settingsSections = [
+    {
+      title: "Profile",
+      description: "Manage your personal information",
+      icon: <User className="h-5 w-5" />,
+      href: "/home/settings/profile",
+    },
+    {
+      title: "Business Profile",
+      description: "Update your company details",
+      icon: <Building className="h-5 w-5" />,
+      href: "/home/settings/business",
+    },
+    {
+      title: "API Keys",
+      description: "Manage your API access credentials",
+      icon: <Key className="h-5 w-5" />,
+      href: "/home/settings/api-keys",
+    },
+    {
+      title: "Security",
+      description: "Configure authentication and security settings",
+      icon: <Shield className="h-5 w-5" />,
+      href: "/home/settings/security",
+    },
+  ];
+
   return (
-    <>
-      <Head>
-        <title>PageName - Your Website</title>
-        <meta name='description' content='Page description goes here.' />
-      </Head>
-      <div className='container mx-auto px-4 py-8'>
-        <h1 className='text-4xl font-bold text-center mb-4'>PageName</h1>
-        <p className='text-center text-gray-600'>Your content goes here.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account and application preferences
+        </p>
       </div>
-    </>
-  );
-};
 
-export default PageName;
+      <div className="grid gap-6 md:grid-cols-2">
+        {settingsSections.map((section) => (
+          <Card key={section.title} className="hover:border-primary transition-colors">
+            <Link href={section.href} className="p-6 block">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                  {section.icon}
+                </div>
+                <div>
+                  <h3 className="font-semibold">{section.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {section.description}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}

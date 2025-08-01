@@ -2,10 +2,7 @@
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
-  CardDescription,
 } from "@/components/ui/card"
 import {
   Table,
@@ -34,11 +31,13 @@ import {
   EyeOff,
   Key,
   MoreVertical,
+  ChevronLeft,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
 import { useState } from "react"
 import { Switch } from "@/components/ui/switch"
+import Link from "next/link";
 
 const apiKeys = [
   {
@@ -92,6 +91,7 @@ export default function ApiKeysPage() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDelete = (id: string) => {
     // In a real app, you would delete the API key
     toast({
@@ -104,12 +104,20 @@ export default function ApiKeysPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/home/settings">
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+        </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
           <p className="text-muted-foreground">
-            Manage your API keys for integrating with our services
+            Manage your API access credentials
           </p>
         </div>
+      </div>
+        
         <Dialog open={isCreating} onOpenChange={setIsCreating}>
           <DialogTrigger asChild>
             <Button>
@@ -145,14 +153,6 @@ export default function ApiKeysPage() {
                     <span className="text-sm">Verify OTP</span>
                     <Switch defaultChecked />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Read Reports</span>
-                    <Switch />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Manage Contacts</span>
-                    <Switch />
-                  </div>
                 </div>
               </div>
             </div>
@@ -166,13 +166,7 @@ export default function ApiKeysPage() {
       </div>
 
       <Card>
-        {/* <CardHeader> */}
-          {/* <CardTitle>Your API Keys</CardTitle>
-          <CardDescription>
-            These keys allow external services to access your account.
-          </CardDescription> */}
-        {/* </CardHeader> */}
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -277,39 +271,92 @@ export default function ApiKeysPage() {
           </Table>
         </CardContent>
       </Card>
-
-      {/* <Card className="bg-muted/50">
-        <CardHeader>
-          <CardTitle>API Documentation</CardTitle>
-          <CardDescription>
-            Learn how to integrate with our API
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Base URL</h3>
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                https://api.sms-service.com/v1
-              </code>
-            </div>
-            <div>
-              <h3 className="font-medium">Authentication</h3>
-              <p className="text-sm text-muted-foreground">
-                Include your API key in the Authorization header:
-              </p>
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                Authorization: Bearer YOUR_API_KEY
-              </code>
-            </div>
-            <div>
-              <Button variant="link" className="p-0 h-auto">
-                View full API documentation →
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card> */}
     </div>
   )
 }
+
+// app/settings/api-keys/page.tsx
+// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import { ChevronLeft } from "lucide-react";
+// import Link from "next/link";
+// //import { Badge } from "@/components/ui/badge";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+
+// export default function ApiKeysPage() {
+//   const apiKeys = [
+//     {
+//       id: "api_123456",
+//       name: "Production Key",
+//       key: "sk_live_123...456",
+//       lastUsed: "2023-06-15",
+//     },
+//     {
+//       id: "api_789012",
+//       name: "Development Key",
+//       key: "sk_test_789...012",
+//       lastUsed: "2023-05-28",
+//     },
+//   ];
+
+//   return (
+//     <div className="space-y-6">
+//       <div className="flex items-center gap-4">
+//         <Button variant="outline" size="icon" asChild>
+//           <Link href="/home/settings">
+//             <ChevronLeft className="h-4 w-4" />
+//           </Link>
+//         </Button>
+//         <div>
+//           <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
+//           <p className="text-muted-foreground">
+//             Manage your API access credentials
+//           </p>
+//         </div>
+//       </div>
+
+//       <Card>
+//         <CardHeader>
+//           <CardTitle>Create New API Key</CardTitle>
+//         </CardHeader>
+//         <CardContent className="space-y-4">
+//           <div className="space-y-2">
+//             <Label htmlFor="keyName">Key Name</Label>
+//             <Input id="keyName" placeholder="e.g. Production Server" />
+//           </div>
+//           <div className="flex justify-end">
+//             <Button>Generate API Key</Button>
+//           </div>
+//         </CardContent>
+//       </Card>
+
+//       <Card>
+//         <CardHeader>
+//           <CardTitle>Your API Keys</CardTitle>
+//         </CardHeader>
+//         <CardContent className="space-y-4">
+//           {apiKeys.map((key) => (
+//             <div key={key.id} className="border rounded-lg p-4 flex justify-between items-center">
+//               <div>
+//                 <div className="font-medium">{key.name}</div>
+//                 <div className="text-sm text-muted-foreground">{key.key}</div>
+//                 <div className="text-xs text-muted-foreground mt-1">
+//                   Last used: {key.lastUsed}
+//                 </div>
+//               </div>
+//               <div className="flex gap-2">
+//                 <Button variant="outline" size="sm">
+//                   Copy
+//                 </Button>
+//                 <Button variant="outline" size="sm">
+//                   Revoke
+//                 </Button>
+//               </div>
+//             </div>
+//           ))}
+//         </CardContent>
+//       </Card>
+//     </div>
+//   );
+// }

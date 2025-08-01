@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
-  themeColor: "#1E40AF", // Or your primary branding color
+  // themeColor: "#1E40AF", // Or your primary branding color
 };
 
 export default function RootLayout({
