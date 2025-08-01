@@ -77,7 +77,7 @@ export function MobileHeader() {
           <DropdownMenuTrigger asChild>
             <div className="cursor-pointer rounded-full ring-2 ring-muted-foreground/30 p-0.5 transition hover:ring-foreground">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="/user.jpg" alt="@user" />
+                <AvatarImage src="/user.svg" alt="@user" />
                 <AvatarFallback>CJ</AvatarFallback>
               </Avatar>
             </div>

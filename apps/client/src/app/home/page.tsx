@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Activity,
   Send,
   Smartphone,
   CircleCheck,
   AlertCircle,
   CreditCard,
   Inbox,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 import {
   BarChart,
@@ -28,6 +29,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
+  LabelList,
 } from "recharts";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -51,12 +54,14 @@ const messageData = [
 ];
 
 const channelData = [
-  { name: "SMS", value: 75 },
-  { name: "WhatsApp", value: 15 },
-  { name: "Email", value: 10 },
+  { name: "MTN", value: 75 },
+  { name: "Telecel", value: 15 },
+  { name: "AT", value: 10 },
 ];
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+// const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+// Brand Colors
+const COLORS = ["#FFCC00", "#E60000", "#0066CC"]; // MTN Yellow, Telecel Red, AT Blue
 
 type smsHistory = {
   message: string;
@@ -74,7 +79,8 @@ const smsHistory: smsHistory[] = [
     id: "1",
     recipient: "0244123456",
     type: "SMS API",
-    message: "Welcome to Sendexa — your all-in-one platform for fast, secure, and reliable communications. Let's help you connect better!",
+    message:
+      "Welcome to Sendexa — your all-in-one platform for fast, secure, and reliable communications. Let's help you connect better!",
     status: "delivered",
     senderId: "Sendexa",
     cost: 0.05,
@@ -110,7 +116,7 @@ const smsHistory: smsHistory[] = [
     cost: 0.05,
     date: "2023-06-13 11:05:49",
   },
-    {
+  {
     id: "5",
     recipient: "0276543210",
     type: "Outgoing",
@@ -133,6 +139,33 @@ const getStatusBadge = (status: smsHistory["status"]) => {
 export default function DashboardHome() {
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const router = useRouter();
+
+  const actions = [
+    {
+      icon: <Send className="h-5 w-5 text-primary" />,
+      title: "Send SMS",
+      description: "Compose and send messages",
+      buttonLabel: "New Message",
+      onClick: () => router.push("/home/sms/send"),
+      variant: "default",
+    },
+    {
+      icon: <Smartphone className="h-5 w-5 text-primary" />,
+      title: "OTP Services",
+      description: "Configure one-time passwords",
+      buttonLabel: "Manage OTP",
+      onClick: () => router.push("/home/otp/overview"),
+      variant: "outline",
+    },
+    {
+      icon: <CreditCard className="h-5 w-5 text-primary" />,
+      title: "Credits",
+      description: "Buy Credit or Top-up Balance",
+      buttonLabel: "Buy Credits",
+      onClick: () => router.push("/home/credits/buy"),
+      variant: "outline",
+    },
+  ];
 
   useEffect(() => {
     // Update date time every minute
@@ -162,181 +195,243 @@ export default function DashboardHome() {
   return (
     <div className="space-y-6">
       {/* Dynamic date/time display */}
-
       <div className="text-base font-semibold text-muted-foreground">
         Your snapshot for today, {currentDateTime || "loading..."}
       </div>
 
-      {/* Stats Grid */}
+      {/* 4 Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-green-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="bg-amber-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               Available Balance
             </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground " />
+            <Wallet className="h-4 w-4 text-yellow-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">GHS 1,245.00</div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p>
+            <div className="text-2xl font-bold">
+              <span className="text-base font-medium">GH₵</span> 1,245.00
+            </div>
+            <p className="text-xs text-yellow-900">+12% from last month</p>
           </CardContent>
         </Card>
-        <Card className="bg-blue-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <Card className="bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">SMS Credits</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
+            <Send className="h-4 w-4 text-blue-700" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24,500</div>
-            <p className="text-xs text-muted-foreground">
-              1,200 used this month
-            </p>
+            <p className="text-xs text-blue-900">1,200 used this month</p>
           </CardContent>
         </Card>
-        <Card className="bg-yellow-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivery Rate</CardTitle>
-            <CircleCheck className="h-4 w-4 text-muted-foreground" />
+
+        <Card className="bg-green-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total SMS Sent
+            </CardTitle>
+            <CircleCheck className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98.2%</div>
-            <p className="text-xs text-muted-foreground">
-              +1.2% from last month
-            </p>
+            <div className="text-2xl font-bold">7,000</div>
+            <p className="text-xs text-green-900">+1.2% from last month</p>
           </CardContent>
         </Card>
-        <Card className="bg-red-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <Card className="bg-red-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               Failed Messages
             </CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <AlertCircle className="h-4 w-4 text-red-700" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground">
-              0.8% of total messages
-            </p>
+            <p className="text-xs text-red-900">0.8% of total messages</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Message Volume Bar Chart */}
         <Card className="h-[350px]">
           <CardHeader>
-            <CardTitle>Message Volume</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Message Volume
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </CardTitle>
             <CardDescription>
               Monthly sent vs delivered messages
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={messageData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="sent" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="delivered" fill="#82ca9d" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {messageData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={messageData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip contentStyle={{ fontSize: "0.75rem" }} />
+                  <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
+                  <Bar dataKey="sent" fill="#8884d8" radius={[4, 4, 0, 0]}>
+                    <LabelList
+                      dataKey="sent"
+                      position="top"
+                      className="text-xs fill-black"
+                    />
+                  </Bar>
+                  <Bar dataKey="delivered" fill="#82ca9d" radius={[4, 4, 0, 0]}>
+                    <LabelList
+                      dataKey="delivered"
+                      position="top"
+                      className="text-xs fill-black"
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground">
+                No data available.
+              </p>
+            )}
           </CardContent>
         </Card>
 
+        {/* Channel Distribution Pie Chart */}
+        {/* <Card className="h-[350px]">
+          <CardHeader>
+            <CardTitle>Network Distribution</CardTitle>
+            <CardDescription>Message delivery networks</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center">
+            {channelData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={230}>
+                <PieChart>
+                  <Pie
+                    data={channelData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    labelLine={false}
+                    // label={({ name, percent }) =>
+                    //   `${name}: ${(percent * 100).toFixed(0)}%`
+                    // }
+                  >
+                    {channelData.map((_entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ fontSize: "0.75rem" }} />
+                  <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground">
+                No data available.
+              </p>
+            )}
+          </CardContent>
+        </Card> */}
+
+        {/* Channel Distribution Pie Chart */}
         <Card className="h-[350px]">
           <CardHeader>
-            <CardTitle>Channel Distribution</CardTitle>
-            <CardDescription>Message delivery channels</CardDescription>
+            <CardTitle>Network Distribution</CardTitle>
+            <CardDescription>Message delivery networks</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={channelData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {channelData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="flex flex-col items-center justify-center">
+            {channelData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={230}>
+                <PieChart>
+                  <Pie
+                    data={channelData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      percent !== undefined
+                        ? `${name}: ${(percent * 100).toFixed(0)}%`
+                        : name
+                    }
+                  >
+                    {channelData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+
+                  <Tooltip
+                    contentStyle={{ fontSize: "0.75rem" }}
+                    formatter={(value: number, name: string) => [
+                      `${value}%`,
+                      name,
+                    ]}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: "0.75rem" }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                No data available.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5" />
-              Send SMS
-            </CardTitle>
-            <CardDescription>Compose and send messages</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              className="w-full"
-              onClick={() => router.push("/home/sms/send")}
-            >
-              New Message
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              OTP Services
-            </CardTitle>
-            <CardDescription>Configure one-time passwords</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push("/home/otp/overview")}
-            >
-              Manage OTP
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Credits
-            </CardTitle>
-            <CardDescription>Buy Credit or Topup Balance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push("/home/credits/buy")}
-            >
-              View Groups
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {actions.map((action, idx) => (
+          <Card
+            key={idx}
+            className="hover:shadow-lg transition-shadow duration-300"
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                {action.icon}
+                {action.title}
+              </CardTitle>
+              <CardDescription>{action.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                variant={action.variant as any}
+                className="w-full"
+                onClick={action.onClick}
+                aria-label={action.buttonLabel}
+              >
+                {action.buttonLabel}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Last 5 SMS History</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Last 5 SMS History
+          </h1>
           <p className="text-muted-foreground">
             View last 5 sent messages and their delivery status
           </p>

@@ -270,18 +270,7 @@ export default function TemplatesPage() {
                     Wrap variables in curly braces like {"{variable}"}
                   </p>
                 </div>
-                {/* {currentTemplate?.variables.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Detected Variables</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {currentTemplate.variables.map((variable) => (
-                        <Badge key={variable} variant="outline">
-                          {"{" + variable + "}"}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )} */}
+                
               </div>
               <DialogFooter>
                 <Button type="submit">
@@ -411,14 +400,16 @@ export default function TemplatesPage() {
               This action cannot be undone. This will permanently delete the template.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete Template
-            </Button>
-          </DialogFooter>
+         
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+    Cancel
+  </Button>
+  <Button variant="destructive" onClick={confirmDelete}>
+    Delete Template
+  </Button>
+</DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>

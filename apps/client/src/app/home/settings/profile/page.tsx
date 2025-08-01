@@ -83,7 +83,7 @@ export default function ProfileSettingsPage() {
               <div className="flex items-center gap-6">
                 <div className="relative group">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={profileImage || "/user.jpg"} />
+                    <AvatarImage src={profileImage || "/user.svg"} />
                     <AvatarFallback>CV</AvatarFallback>
                   </Avatar>
                   <button

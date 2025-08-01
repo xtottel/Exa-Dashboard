@@ -76,7 +76,7 @@ export function DesktopHeader() {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer rounded-full ring-2 ring-muted-foreground/30 px-2 py-1 transition hover:ring-foreground">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/user.jpg" alt="@user" />
+                <AvatarImage src="/user.svg" alt="@user" />
                 <AvatarFallback>CL</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium text-muted-foreground">{userName}</span>
