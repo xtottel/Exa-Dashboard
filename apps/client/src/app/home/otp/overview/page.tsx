@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 const otpData = [
   { name: "Jan", sent: 4000, verified: 3800, failed: 200 },
@@ -312,7 +313,7 @@ export default function OtpOverviewPage() {
           </div>
           <div className="space-x-2">
             <Button variant="outline" size="sm">
-              View All
+              <Link href={`/home/otp/reports`}>View All</Link>
             </Button>
           </div>
         </CardFooter>

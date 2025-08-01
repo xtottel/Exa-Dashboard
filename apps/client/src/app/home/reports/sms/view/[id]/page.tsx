@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { useParams } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Clock, CheckCircle2, XCircle,  } from "lucide-react";
+import { ChevronLeft, Clock, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,7 +24,8 @@ const smsHistory: SmsHistory[] = [
     id: "1",
     recipient: "0244123456",
     type: "SMS API",
-    message: "Your OTP is 123456",
+    message:
+      "Welcome to Sendexa — your all-in-one platform for fast, secure, and reliable communications. Let's help you connect better!",
     status: "delivered",
     senderId: "Sendexa",
     cost: 0.05,
@@ -52,6 +53,16 @@ const smsHistory: SmsHistory[] = [
   },
   {
     id: "4",
+    recipient: "0276543210",
+    type: "Outgoing",
+    message: "Your OTP is 123456",
+    status: "delivered",
+    senderId: "Sendexa",
+    cost: 0.05,
+    date: "2023-06-13 11:05:49",
+  },
+  {
+    id: "5",
     recipient: "0276543210",
     type: "Outgoing",
     message: "Your payment of GHS 150.00 was received",

@@ -44,7 +44,7 @@ const smsHistory: smsHistory[] = [
     id: "1",
     recipient: "0244123456",
     type: "SMS API",
-    message: "Your OTP is 123456",
+    message: "Welcome to Sendexa — your all-in-one platform for fast, secure, and reliable communications. Let's help you connect better!",
     status: "delivered",
     senderId: "Sendexa",
     cost: 0.05,
@@ -74,6 +74,16 @@ const smsHistory: smsHistory[] = [
     id: "4",
     recipient: "0276543210",
     type: "Outgoing",
+    message: "Your OTP is 123456",
+    status: "delivered",
+    senderId: "Sendexa",
+    cost: 0.05,
+    date: "2023-06-13 11:05:49",
+  },
+    {
+    id: "5",
+    recipient: "0276543210",
+    type: "Outgoing",
     message: "Your payment of GHS 150.00 was received",
     status: "delivered",
     senderId: "Sendexa",
@@ -81,6 +91,7 @@ const smsHistory: smsHistory[] = [
     date: "2023-06-13 11:05:49",
   },
 ];
+
 
 const getStatusBadge = (status: smsHistory["status"]) => {
   return (
@@ -176,13 +187,6 @@ export default function SmsHistoryPage() {
                   </TableCell>
                   <TableCell>GHS {sms.cost}</TableCell>
                   <TableCell>{sms.date}</TableCell>
-
-                  {/* <TableCell>
-                    <Button variant="default" className="h-8 gap-2">
-                      <Inbox className="h-4 w-4" />
-                      Inbox
-                    </Button>
-                  </TableCell> */}
 
                   <TableCell>
                     <Button variant="default" className="h-8 gap-2" asChild>
