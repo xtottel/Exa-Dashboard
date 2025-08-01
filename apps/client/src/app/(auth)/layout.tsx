@@ -3,6 +3,7 @@ import GridShape from "@/components/common/GridShape";
 //import Link from "next/link";
 import React from "react";
 
+
 export default function AuthLayout({
   children,
 }: {

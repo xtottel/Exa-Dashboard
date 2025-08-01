@@ -2,8 +2,8 @@
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-//import { EyeOff, EyeIcon } from "lucide-react";
-import { EyeCloseIcon, EyeIcon } from "@/icons";
+import { EyeOff as EyeCloseIcon, EyeIcon } from "lucide-react";
+//import { EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import Image from "next/image";
