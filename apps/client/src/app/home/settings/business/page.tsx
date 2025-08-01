@@ -46,6 +46,16 @@ export default function BusinessProfilePage() {
               <Input id="country" defaultValue="Ghana" />
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Company Email</Label>
+              <Input id="email" type="email" defaultValue="ceo@sendexa.co" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Company Phone Number</Label>
+              <Input id="phone" type="tel" defaultValue="0551196764" />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="taxId">Tax Identification Number</Label>
             <Input id="taxId" defaultValue="C123456789" />
