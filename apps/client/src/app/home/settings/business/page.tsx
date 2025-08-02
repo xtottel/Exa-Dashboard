@@ -80,7 +80,7 @@ export default function BusinessProfilePage() {
               <div className="flex items-center gap-6">
                 <div className="relative group">
                   <Avatar className="h-24 w-24 rounded-lg">
-                    <AvatarImage src={logo || "/favicon.png"} />
+                    <AvatarImage src={logo || "/Sendexa.jpg"} />
                     <AvatarFallback>
                       <Building2 className="h-12 w-12 text-muted-foreground" />
                     </AvatarFallback>

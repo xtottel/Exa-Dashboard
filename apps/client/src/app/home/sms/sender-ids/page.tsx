@@ -1,8 +1,6 @@
 "use client";
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
@@ -17,7 +15,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -86,7 +84,7 @@ export default function SenderIdPage() {
 
   const [newSenderId, setNewSenderId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+ 
 
   const handleAddSenderId = () => {
     if (newSenderId.trim() === "") {
@@ -118,22 +116,6 @@ export default function SenderIdPage() {
     toast.success("Sender ID submitted for approval");
   };
 
-  const handleDelete = (id: string) => {
-    setIsDeleting(id);
-    toast.promise(
-      new Promise((resolve) => {
-        setTimeout(() => {
-          setSenderIds(senderIds.filter((sid) => sid.id !== id));
-          resolve("success");
-        }, 1000);
-      }),
-      {
-        loading: "Deleting Sender ID...",
-        success: "Sender ID deleted successfully",
-        error: "Error deleting Sender ID",
-      }
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -169,7 +151,7 @@ export default function SenderIdPage() {
               maxLength={11}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
@@ -187,7 +169,7 @@ export default function SenderIdPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>AT Whitelisted</TableHead>
                 <TableHead>Date Registered</TableHead>
-                <TableHead >Actions</TableHead>
+               
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,23 +180,7 @@ export default function SenderIdPage() {
                   <TableCell>
                     <Badge variant="outline">{senderId.atWhitelisted}</Badge>
                   </TableCell>
-                  <TableCell>{senderId.createdAt}</TableCell>
-                  <TableCell >
-                    <div >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(senderId.id)}
-                        disabled={
-                          senderId.status === "approved" ||
-                          isDeleting === senderId.id
-                        }
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        {isDeleting === senderId.id}
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableCell>{senderId.createdAt}</TableCell>                 
                 </TableRow>
               ))}
             </TableBody>
@@ -226,22 +192,6 @@ export default function SenderIdPage() {
             <strong>{senderIds.length}</strong> sender IDs
           </div>
         </CardFooter>
-      </Card>
-
-      <Card className="bg-muted/50">
-        <CardHeader>
-          <CardTitle>Sender ID Guidelines</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm list-disc pl-5">
-            <li>Sender IDs must be 3-11 characters long</li>
-            <li>Only alphanumeric characters are allowed (A-Z, 0-9)</li>
-            <li>No spaces or special characters permitted</li>
-            <li>Approval typically takes 1-3 business days</li>
-            <li>Some countries have specific Sender ID restrictions</li>
-            <li>Rejected Sender IDs can be modified and resubmitted</li>
-          </ul>
-        </CardContent>
       </Card>
     </div>
   );

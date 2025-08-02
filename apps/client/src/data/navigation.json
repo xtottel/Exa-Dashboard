@@ -5,6 +5,10 @@
       "url": "/home"
     },
     {
+      "title": "Get Started",
+      "url": "/home/get-started"
+    },
+    {
       "title": "SMS",
       "url": "/home/sms",
       "items": [

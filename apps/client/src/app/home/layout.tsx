@@ -1,4 +1,3 @@
-
 // app/docs/layout.tsx
 import type React from "react";
 //import { AppSidebar } from "@/layout/app-sidebar";
@@ -6,8 +5,9 @@ import { AppSidebar } from "@/layout/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DesktopHeader } from "@/layout/desktop-header";
 import { MobileHeader } from "@/layout/mobile-header";
+import DashboardFooter from "@/layout/DashboardFooter";
 
-export default function DocsLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -31,13 +31,14 @@ export default function DocsLayout({
           </div>
 
           {/* Content area with consistent padding */}
-         
           <main className="flex-1 w-full ">
             <div className="w-full max-w-full py-2 px-2 sm:px-6">
               {children}
             </div>
           </main>
-         
+
+          {/* ✅ Footer */}
+          <DashboardFooter />
         </div>
       </div>
     </SidebarProvider>

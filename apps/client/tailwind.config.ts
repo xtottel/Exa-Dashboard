@@ -1,3 +1,4 @@
+import { error } from "console";
 import type { Config } from "tailwindcss";
 
 export default {
@@ -32,8 +33,20 @@ export default {
           900: "#262e89",
           950: "#161950",
         },
-        
-
+        error: {
+          25: "#fffbfa",
+          50: "#fef3f2",
+          100: "#fee4e2",
+          200: "#fecdca",
+          300: "#fda29b",
+          400: "#f97066",
+          500: "#f04438",
+          600: "#d92d20",
+          700: "#b42318",
+          800: "#912018",
+          900: "#7a271a",
+          950: "#55160c",
+        },
 
         card: {
           DEFAULT: "#ffffff",

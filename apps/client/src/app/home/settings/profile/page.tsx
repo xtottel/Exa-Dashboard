@@ -12,18 +12,12 @@ import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+
 
 export default function ProfileSettingsPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isEmailVerified,
-    //  setIsEmailVerified
-    ] = useState(true);
-  const [isPhoneVerified,
-    //  setIsPhoneVerified
-    ] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,7 +78,7 @@ export default function ProfileSettingsPage() {
                 <div className="relative group">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={profileImage || "/user.svg"} />
-                    <AvatarFallback>CV</AvatarFallback>
+                    <AvatarFallback>CJ</AvatarFallback>
                   </Avatar>
                   <button
                     type="button"
@@ -138,18 +132,12 @@ export default function ProfileSettingsPage() {
                   <Label htmlFor="email">Email</Label>
                   <div className="flex items-center gap-2">
                     <Input id="email" type="email" defaultValue="ceo@sendexa.co" />
-                    <Badge variant={isEmailVerified ? "success" : "warning"}>
-                      {isEmailVerified ? "Verified" : "Pending"}
-                    </Badge>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex items-center gap-2">
                     <Input id="phone" type="tel" defaultValue="0551196764" />
-                    <Badge variant={isPhoneVerified ? "success" : "warning"}>
-                      {isPhoneVerified ? "Verified" : "Pending"}
-                    </Badge>
                   </div>
                 </div>
               </div>

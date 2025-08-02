@@ -11,6 +11,7 @@ import {
   Cog,
   LockKeyhole,
   FileChartPie,
+  Clapperboard,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -40,12 +41,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const sectionIcons = {
-  Dashboard: PieChart,
-  SMS: MessageSquareText,
-  OTP: LockKeyhole,
-  Reports: FileChartPie,
-  Settings: Cog,
-  Credits: CreditCard,
+  "Dashboard": PieChart,
+  "Get Started": Clapperboard,
+  "SMS": MessageSquareText,
+  "OTP": LockKeyhole,
+  "Reports": FileChartPie,
+  "Settings": Cog,
+  "Credits": CreditCard,
 } as const;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

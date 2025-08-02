@@ -210,7 +210,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              <span className="text-base font-medium">GH₵</span> 1,245.00
+              <span className="text-base font-medium">GH₵</span> 8,245.00
             </div>
             <p className="text-xs text-yellow-900">+12% from last month</p>
           </CardContent>
