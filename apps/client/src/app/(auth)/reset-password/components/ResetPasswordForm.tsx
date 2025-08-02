@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-import { EyeCloseIcon, EyeIcon } from "@/icons";
+// import { EyeCloseIcon, EyeIcon } from "@/icons";
+import { EyeOff as EyeCloseIcon, EyeIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
