@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 //import { Toaster } from "@/components/ui/toaster"
 import { Toaster } from "react-hot-toast";
 import { Toaster as Exatoast } from 'sonner'
+import Script from "next/script";
 
 
 
@@ -55,12 +56,30 @@ export const metadata: Metadata = {
     locale: "en_GB",
     type: "website",
   },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
   // themeColor: "#1E40AF", // Or your primary branding color
+    robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
+  },
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+    other: {
+      rel: "mask-icon",
+      url: "/safari-pinned-tab.svg",
+      color: "#3a0ca3",
+    },
+  },
+  themeColor: "#3a0ca3",
+  verification: {
+    google: "your-google-verification-code",
+  },
 };
 
 export default function RootLayout({
@@ -75,7 +94,12 @@ export default function RootLayout({
           {children}
           <Exatoast position="top-center" expand={true} richColors />
           <Toaster position="top-center" reverseOrder={false} />
-        
+
+          {/* Tidio live chat script */}
+         <Script
+          src="https://code.tidio.co/o93ckmtrvwarfdtztq2dbz0ghzunte8r.js"
+          strategy="afterInteractive"
+        /> 
       </body>
     </html>
   );
