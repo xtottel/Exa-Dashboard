@@ -9,9 +9,18 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 export default function VideoGuidePage() {
+  const [videoSource] = useState<{
+    type: "youtube" | "self";
+    src: string;
+  }>({
+    type: "youtube",
+    src: "https://www.youtube.com/embed/hpcCQa7DY40", // replace with your YouTube embed link or self-hosted video
+  });
+
   return (
     <div className="space-y-10 pb-10">
       {/* Header */}
@@ -31,19 +40,26 @@ export default function VideoGuidePage() {
           <CardHeader>
             <Card className="rounded-xl overflow-hidden shadow-lg">
               <div className="aspect-video bg-black flex items-center justify-center">
-                <div className="text-center">
-                  <Button size="lg" className="rounded-full w-16 h-16 p-0">
-                    <Play className="h-8 w-8 ml-1" />
-                  </Button>
-                  <p className="mt-4 text-white text-sm">
-                    Sendexa Platform Overview
-                  </p>
-                </div>
+                {videoSource.type === "youtube" ? (
+                  <iframe
+                    src={videoSource.src}
+                    title="Sendexa Guide"
+                    frameBorder="0"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <video
+                    src={videoSource.src}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </Card>
           </CardHeader>
         </Card>
-      
+
         {/* Next Steps Card */}
         <Card>
           <CardHeader>
@@ -51,39 +67,20 @@ export default function VideoGuidePage() {
             <CardDescription>After watching the video</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-2 rounded-lg text-primary mt-1">
-                <span className="font-medium">1</span>
-              </div>
-              <div>
-                <h4 className="font-medium">Register Your Sender ID</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Get your approved sender name for outgoing messages
-                </p>
-                <Button variant="outline" size="sm" className="mt-2" asChild>
-                  <Link href="/home/sms/sender-ids">
-                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-2 rounded-lg text-primary mt-1">
-                <span className="font-medium">3</span>
-              </div>
-              <div>
-                <h4 className="font-medium">Top Up Your Account</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add funds to start sending messages immediately
-                </p>
-                <Button variant="outline" size="sm" className="mt-2" asChild>
-                  <Link href="/home/credits/buy">
-                    Buy Credits <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
+            <StepCard
+              number="1"
+              title="Register Your Sender ID"
+              description="Get your approved sender name for outgoing messages"
+              link="/home/sms/sender-ids"
+              buttonText="Get Started"
+            />
+            <StepCard
+              number="2"
+              title="Top Up Your Account"
+              description="Add funds to start sending messages immediately"
+              link="/home/credits/buy"
+              buttonText="Buy Credits"
+            />
           </CardContent>
         </Card>
       </div>
@@ -113,6 +110,37 @@ export default function VideoGuidePage() {
             href="https://xtopay.co"
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  description,
+  link,
+  buttonText,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  link: string;
+  buttonText: string;
+}) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="bg-primary/10 p-2 rounded-lg text-primary mt-1">
+        <span className="font-medium">{number}</span>
+      </div>
+      <div>
+        <h4 className="font-medium">{title}</h4>
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        <Button variant="outline" size="sm" className="mt-2" asChild>
+          <Link href={link}>
+            {buttonText} <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   );
