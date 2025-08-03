@@ -2,10 +2,9 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "@/styles/globals.css";
-//import { Toaster } from "@/components/ui/toaster"
 import { Toaster } from "react-hot-toast";
 import { Toaster as Exatoast } from 'sonner'
-import Script from "next/script";
+//import Script from "next/script";
 
 
 
@@ -76,7 +75,7 @@ export const metadata: Metadata = {
       color: "#3a0ca3",
     },
   },
-  themeColor: "#3a0ca3",
+  // themeColor: "#3a0ca3",
   verification: {
     google: "your-google-verification-code",
   },
@@ -96,10 +95,10 @@ export default function RootLayout({
           <Toaster position="top-center" reverseOrder={false} />
 
           {/* Tidio live chat script */}
-         <Script
+         {/* <Script
           src="https://code.tidio.co/o93ckmtrvwarfdtztq2dbz0ghzunte8r.js"
           strategy="afterInteractive"
-        /> 
+        />  */}
       </body>
     </html>
   );

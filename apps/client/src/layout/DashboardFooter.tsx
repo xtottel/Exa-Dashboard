@@ -6,7 +6,7 @@ export default function DashboardFooter() {
   return (
     <footer className="w-full bg-slate-100 border-t mt-4 py-4 px-6 text-sm text-muted-foreground flex flex-col md:flex-row items-center justify-between">
       <p className="text-center md:text-left">
-        © {year} Sendexa. All rights reserved.
+        © {year} Sendexa LLC. All rights reserved.
       </p>
       <p className="text-center md:text-right mt-2 md:mt-0">
         Built with <span className="text-red-500">💚</span> by{" "}
