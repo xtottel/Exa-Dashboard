@@ -38,12 +38,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Sendexa Team", url: "https://sendexa.co" }],
   creator: "Sendexa",
   publisher: "Xtottel Technologies",
-  metadataBase: new URL("https://dashboard.sendexa.co"),
+  metadataBase: new URL("https://app.sendexa.co"),
   openGraph: {
     title: "Sendexa Dashboard",
     description:
       "Access the Sendexa dashboard to send messages, manage contacts, view reports, and buy SMS credits.",
-    url: "https://dashboard.sendexa.co",
+    url: "https://app.sendexa.co",
     siteName: "Sendexa",
     images: [
       {
