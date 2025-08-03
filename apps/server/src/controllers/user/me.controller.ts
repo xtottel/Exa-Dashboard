@@ -1,6 +1,6 @@
 // apps/api/src/controllers/v1/user/me.controller.ts
 import { Request, Response } from "express";
-import { prisma } from "../../../config/prisma";
+import { prisma } from "../../config/prisma";
 
 export const getMe = async (req: Request, res: Response) => {
   const userId = req.session.userId;
