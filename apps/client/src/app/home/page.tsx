@@ -300,47 +300,6 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
 
-        {/* Channel Distribution Pie Chart */}
-        {/* <Card className="h-[350px]">
-          <CardHeader>
-            <CardTitle>Network Distribution</CardTitle>
-            <CardDescription>Message delivery networks</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center">
-            {channelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={230}>
-                <PieChart>
-                  <Pie
-                    data={channelData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    labelLine={false}
-                    // label={({ name, percent }) =>
-                    //   `${name}: ${(percent * 100).toFixed(0)}%`
-                    // }
-                  >
-                    {channelData.map((_entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ fontSize: "0.75rem" }} />
-                  <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-center text-muted-foreground">
-                No data available.
-              </p>
-            )}
-          </CardContent>
-        </Card> */}
 
         {/* Channel Distribution Pie Chart */}
         <Card className="h-[350px]">

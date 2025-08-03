@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react"
+import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -7,8 +7,8 @@ import {
   CardContent,
   // CardDescription,
   CardFooter,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -16,16 +16,16 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogTrigger,
@@ -34,27 +34,28 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Plus, MoreVertical, Trash2, Edit, Copy, Search } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Plus, MoreVertical, Trash2, Edit, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 type Template = {
-  id: string
-  name: string
-  content: string
-  category: string
-  variables: string[]
-  createdAt: string
-  updatedAt: string
-}
+  id: string;
+  name: string;
+  content: string;
+  category: string;
+  variables: string[];
+  createdAt: string;
+  updatedAt: string;
+};
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([
     {
       id: "1",
       name: "Welcome Message",
-      content: "Hello {name}, welcome to {company}! Your account is now active.",
+      content:
+        "Hello {name}, welcome to {company}! Your account is now active.",
       category: "Onboarding",
       variables: ["name", "company"],
       createdAt: "2023-10-15",
@@ -81,19 +82,20 @@ export default function TemplatesPage() {
     {
       id: "4",
       name: "Order Confirmation",
-      content: "Hi {name}, your order #{orderId} has been confirmed. Delivery in {days} days.",
+      content:
+        "Hi {name}, your order #{orderId} has been confirmed. Delivery in {days} days.",
       category: "Transactions",
       variables: ["name", "orderId", "days"],
       createdAt: "2023-08-10",
       updatedAt: "2023-08-12",
     },
-  ])
+  ]);
 
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [currentTemplate, setCurrentTemplate] = useState<Template | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentTemplate, setCurrentTemplate] = useState<Template | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
   const categories = [
     { id: "all", name: "All Categories" },
@@ -101,19 +103,21 @@ export default function TemplatesPage() {
     { id: "security", name: "Security" },
     { id: "transactions", name: "Transactions" },
     { id: "promotions", name: "Promotions" },
-  ]
+  ];
 
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   const filteredTemplates = templates.filter((template) => {
-    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.content.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.content.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory = selectedCategory === "all" ||
-      template.category.toLowerCase() === selectedCategory.toLowerCase()
+    const matchesCategory =
+      selectedCategory === "all" ||
+      template.category.toLowerCase() === selectedCategory.toLowerCase();
 
-    return matchesSearch && matchesCategory
-  })
+    return matchesSearch && matchesCategory;
+  });
 
   const handleCreate = () => {
     setCurrentTemplate({
@@ -124,41 +128,43 @@ export default function TemplatesPage() {
       variables: [],
       createdAt: "",
       updatedAt: "",
-    })
-    setIsDialogOpen(true)
-  }
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleEdit = (template: Template) => {
-    setCurrentTemplate(template)
-    setIsDialogOpen(true)
-  }
+    setCurrentTemplate(template);
+    setIsDialogOpen(true);
+  };
 
   const handleDelete = (id: string) => {
-    setTemplateToDelete(id)
-    setIsDeleteDialogOpen(true)
-  }
+    setTemplateToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
 
   const confirmDelete = () => {
     if (templateToDelete) {
-      setTemplates(templates.filter(t => t.id !== templateToDelete))
-      setIsDeleteDialogOpen(false)
-      setTemplateToDelete(null)
+      setTemplates(templates.filter((t) => t.id !== templateToDelete));
+      setIsDeleteDialogOpen(false);
+      setTemplateToDelete(null);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentTemplate) return
+    e.preventDefault();
+    if (!currentTemplate) return;
 
-    const now = new Date().toISOString().split('T')[0]
-    
+    const now = new Date().toISOString().split("T")[0];
+
     if (currentTemplate.id) {
       // Update existing template
-      setTemplates(templates.map(t => 
-        t.id === currentTemplate.id 
-          ? { ...currentTemplate, updatedAt: now }
-          : t
-      ))
+      setTemplates(
+        templates.map((t) =>
+          t.id === currentTemplate.id
+            ? { ...currentTemplate, updatedAt: now }
+            : t
+        )
+      );
     } else {
       // Create new template
       const newTemplate = {
@@ -166,39 +172,41 @@ export default function TemplatesPage() {
         id: `t-${Date.now()}`,
         createdAt: now,
         updatedAt: now,
-      }
-      setTemplates([...templates, newTemplate])
+      };
+      setTemplates([...templates, newTemplate]);
     }
 
-    setIsDialogOpen(false)
-    setCurrentTemplate(null)
-  }
+    setIsDialogOpen(false);
+    setCurrentTemplate(null);
+  };
 
   const extractVariables = (content: string) => {
-    const regex = /\{([^}]+)\}/g
-    const matches = []
-    let match
+    const regex = /\{([^}]+)\}/g;
+    const matches = [];
+    let match;
     while ((match = regex.exec(content)) !== null) {
-      matches.push(match[1])
+      matches.push(match[1]);
     }
-    return Array.from(new Set(matches)) // Remove duplicates
-  }
+    return Array.from(new Set(matches)); // Remove duplicates
+  };
 
   const handleContentChange = (content: string) => {
-    if (!currentTemplate) return
-    const variables = extractVariables(content)
+    if (!currentTemplate) return;
+    const variables = extractVariables(content);
     setCurrentTemplate({
       ...currentTemplate,
       content,
       variables,
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Message Templates</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Message Templates
+          </h1>
           <p className="text-muted-foreground">
             Create and manage your SMS message templates
           </p>
@@ -214,7 +222,9 @@ export default function TemplatesPage() {
             <form onSubmit={handleSubmit}>
               <DialogHeader>
                 <DialogTitle>
-                  {currentTemplate?.id ? "Edit Template" : "Create New Template"}
+                  {currentTemplate?.id
+                    ? "Edit Template"
+                    : "Create New Template"}
                 </DialogTitle>
                 <DialogDescription>
                   {currentTemplate?.id
@@ -270,7 +280,6 @@ export default function TemplatesPage() {
                     Wrap variables in curly braces like {"{variable}"}
                   </p>
                 </div>
-                
               </div>
               <DialogFooter>
                 <Button type="submit">
@@ -347,18 +356,20 @@ export default function TemplatesPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(template)}>
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(template)}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -397,21 +408,24 @@ export default function TemplatesPage() {
           <DialogHeader>
             <DialogTitle>Are you sure absolutely sure?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the template.
+              This action cannot be undone. This will permanently delete the
+              template.
             </DialogDescription>
           </DialogHeader>
-         
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-    Cancel
-  </Button>
-  <Button variant="destructive" onClick={confirmDelete}>
-    Delete Template
-  </Button>
-</DialogFooter>
 
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete Template
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
