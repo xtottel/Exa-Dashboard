@@ -1,0 +1,202 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "mysql" depending on your database
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id            String     @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String     @unique
+  phone         String
+  ghanaCardId   String?
+  address       String?
+  password      String
+  profileImage  String?
+  emailVerified Boolean    @default(false)
+  phoneVerified Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relationships
+  business      Business?
+  notifications Notification[]
+  sessions      Session[]
+  apiKeys       ApiKey[]
+  settings      UserSettings?
+}
+
+
+// User settings
+model UserSettings {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(false)
+  promotionalOffers  Boolean @default(true)
+  twoFactorEnabled   Boolean @default(false)
+  twoFactorMethod    String?  // "sms" or "authenticator"
+}
+
+// Business model
+model Business {
+  id                 String    @id @default(uuid())
+  ownerId            String
+  owner              User      @relation(fields: [ownerId], references: [id])
+  name               String
+  description        String?
+  logo               String?
+  businessType       String    // "sole", "private", "public", "ngo"
+  incorporationDate  DateTime?
+  address            String?
+  city               String?
+  region             String?
+  country            String    @default("Ghana")
+  email              String?
+  phone              String?
+  website            String?
+  taxId              String?
+  registrationNumber String?
+  vatNumber          String?
+  facebook           String?
+  twitter            String?
+  linkedin           String?
+  instagram          String?
+  businessHours      String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relationships
+  senderIds      SenderId[]
+  templates      Template[]
+  invoices       Invoice[]
+  transactions   Transaction[]
+}
+
+// Sender ID model
+model SenderId {
+  id            String   @id @default(uuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id])
+  name          String
+  status        String   @default("pending") // "approved", "pending", "rejected"
+  atWhitelisted String   @default("Not Submitted") // "Submitted", "Not Submitted"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// SMS History model
+model SmsHistory {
+  id        String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  recipient String
+  message   String
+  type      String   // "SMS API", "Outgoing", etc.
+  status    String   // "delivered", "pending", "failed"
+  cost      Float
+  senderId  String
+  date      DateTime @default(now())
+}
+
+// OTP model
+model Otp {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  phone      String
+  code       String
+  status     String   // "delivered", "failed", "pending"
+  codeStatus String   // "active", "expired", "used"
+  channel    String   // "SMS", "WhatsApp", etc.
+  cost       Float
+  senderId   String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+}
+
+// Message Templates
+model Template {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  name        String
+  content     String
+  category    String   // "Onboarding", "Security", "Transactions", etc.
+  variables   String[] // Array of variable names
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// API Keys
+model ApiKey {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  key         String   @unique
+  lastUsed    DateTime?
+  createdAt   DateTime @default(now())
+  status      String   @default("active") // "active", "inactive"
+  permissions String[] // Array of permissions like ["send_sms", "verify_otp"]
+}
+
+// Credits and Transactions
+model Transaction {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  amount      Float
+  type        String   // "credit_purchase", "sms_usage", etc.
+  description String
+  balance     Float    // Remaining balance after transaction
+  reference   String?
+  createdAt   DateTime @default(now())
+}
+
+// Invoices
+model Invoice {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  invoiceId   String   @unique
+  date        DateTime @default(now())
+  amount      Float
+  status      String   @default("paid") // "paid", "pending", "failed"
+  type        String   // "SMS Credits", etc.
+  pdfUrl      String?
+  createdAt   DateTime @default(now())
+}
+
+// User sessions for authentication
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  deviceInfo   String?
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+// Notifications
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   // "sms", "otp", "payment", etc.
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
