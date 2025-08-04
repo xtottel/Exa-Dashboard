@@ -48,10 +48,6 @@
         {
           "title": "Sender ID Requests",
           "url": "/admin/approvals/sender-ids"
-        },
-        {
-          "title": "KYC Submissions",
-          "url": "/admin/approvals/kyc"
         }
       ]
     },

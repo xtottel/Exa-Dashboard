@@ -18,6 +18,8 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         success:
           "border-transparent bg-success text-success-foreground hover:bg-success/80",
+            active:
+          "border-transparent bg-success text-success-foreground hover:bg-success/80",
         warning:
           "border-transparent bg-warning text-warning-foreground hover:bg-warning/80",
         info: "border-transparent bg-info text-info-foreground hover:bg-info/80",
@@ -33,6 +35,7 @@ const badgeVariants = cva(
       status: {
         paid: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
          approved: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+          active: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         delivered:
           "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         processed:
@@ -53,6 +56,11 @@ const badgeVariants = cva(
       {
         variant: "status",
         status: "paid",
+        className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
+      },
+       {
+        variant: "status",
+        status: "active",
         className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
       },
       {
@@ -105,6 +113,7 @@ const badgeVariants = cva(
 const statusIcons = {
   paid: <CheckCircle size={14} />,
    approved: <CheckCircle size={14} />,
+   active: <CheckCircle size={14} />,
   delivered: <CheckCircle size={14} />,
   processed: <CheckCircle size={14} />,
   pending: <Clock size={14} />,
