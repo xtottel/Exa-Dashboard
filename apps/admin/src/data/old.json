@@ -1,0 +1,47 @@
+{
+  "navMain": [
+    {
+      "title": "Dashboard",
+      "url": "/admin"
+    },
+    {
+      "title": "Businesses",
+      "url": "/admin/businesses"
+    },
+    {
+      "title": "Sender IDs",
+      "url": "/admin/sender-ids",
+      "items": [
+        { "title": "Pending IDs", "url": "/admin/sender-ids/pending" },
+        { "title": "Approved IDs", "url": "/admin/sender-ids/approved" },
+        { "title": "Rejected IDs", "url": "/admin/sender-ids/rejected" },
+        { "title": "All Sender IDs", "url": "/admin/sender-ids/all" }
+      ]
+    },
+    {
+      "title": "Reports",
+      "url": "/admin/reports",
+      "items": [
+        {
+          "title": "SMS History",
+          "url": "/admin/reports/sms"
+        },
+        {
+          "title": "OTP Statistics",
+          "url": "/admin/reports/otp"
+        }
+      ]
+    },
+
+    {
+      "title": "Finance",
+      "url": "/admin/finance",
+      "items": [
+        {
+          "title": "Transactions",
+          "url": "/admin/finance/transactions"
+        }
+      ]
+    }
+  ]
+}

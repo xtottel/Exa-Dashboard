@@ -5,8 +5,17 @@
       "url": "/admin"
     },
     {
+      "title": "Users",
+      "url": "/admin/users"
+    },
+    {
       "title": "Businesses",
-      "url": "/admin/businesses"
+      "url": "/admin/businesses",
+      "items": [
+        { "title": "Pending", "url": "/admin/businesses/pending" },
+        { "title": "Verified", "url": "/admin/businesses/verified" },
+        { "title": "All Businesses", "url": "/admin/businesses/all" }
+      ]
     },
     {
       "title": "Sender IDs",
@@ -22,25 +31,18 @@
       "title": "Reports",
       "url": "/admin/reports",
       "items": [
-        {
-          "title": "SMS History",
-          "url": "/admin/reports/sms"
-        },
-        {
-          "title": "OTP Statistics",
-          "url": "/admin/reports/otp"
-        }
+        { "title": "SMS History", "url": "/admin/reports/sms" },
+        { "title": "OTP Reports", "url": "/admin/reports/otp" }
       ]
     },
-
     {
       "title": "Finance",
       "url": "/admin/finance",
       "items": [
-        {
-          "title": "Transactions",
-          "url": "/admin/finance/transactions"
-        }
+        { "title": "Transactions", "url": "/admin/finance/transactions" },
+        { "title": "Credit Purchases", "url": "/admin/finance/credits" },
+        { "title": "Refund Requests", "url": "/admin/finance/refunds" },
+        { "title": "Invoices", "url": "/admin/finance/invoices" }
       ]
     }
   ]
