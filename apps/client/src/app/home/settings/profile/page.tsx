@@ -10,7 +10,6 @@ import { ChevronLeft, Upload, Camera, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 
@@ -158,40 +157,6 @@ export default function ProfileSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive important updates via email
-                  </p>
-                </div>
-                <Switch id="email-notifications" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get alerts via text message
-                  </p>
-                </div>
-                <Switch id="sms-notifications" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="promotional">Promotional Offers</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive special offers and discounts
-                  </p>
-                </div>
-                <Switch id="promotional" defaultChecked />
-              </div>
-            </CardContent>
-          </Card>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" asChild>

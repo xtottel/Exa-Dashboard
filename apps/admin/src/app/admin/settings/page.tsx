@@ -1,7 +1,6 @@
 // app/settings/page.tsx
 import { Card } from "@/components/ui/card";
-//import { Button } from "@/components/ui/button";
-import { User, Building, Key, Shield } from "lucide-react";
+import { User, Key, Shield,  Users } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -10,25 +9,25 @@ export default function SettingsPage() {
       title: "Profile",
       description: "Manage your personal information",
       icon: <User className="h-5 w-5" />,
-      href: "/home/settings/profile",
-    },
-    {
-      title: "Business Profile",
-      description: "Update your company details",
-      icon: <Building className="h-5 w-5" />,
-      href: "/home/settings/business",
+      href: "/admin/settings/profile",
     },
     {
       title: "API Keys",
       description: "Manage your API access credentials",
       icon: <Key className="h-5 w-5" />,
-      href: "/home/settings/api-keys",
+      href: "/admin/settings/api-keys",
     },
     {
       title: "Security",
       description: "Configure authentication and security settings",
       icon: <Shield className="h-5 w-5" />,
-      href: "/home/settings/security",
+      href: "/admin/settings/security",
+    },
+    {
+      title: "Teams",
+      description: "Manage team members and permissions",
+      icon: <Users className="h-5 w-5" />,
+      href: "/admin/settings/teams",
     },
   ];
 

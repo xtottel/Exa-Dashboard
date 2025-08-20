@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Upload, Image, Globe,  Building2, Landmark } from "lucide-react";
+import { ChevronLeft, Upload, Image as Image2,  Building2,  } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -90,7 +90,7 @@ export default function BusinessProfilePage() {
                     onClick={triggerFileInput}
                     className="absolute -bottom-2 -right-2 bg-primary rounded-full p-2 shadow-sm hover:bg-primary/90 transition-colors group-hover:opacity-100 opacity-0"
                   >
-                    <Image className="h-4 w-4 text-white" />
+                    <Image2 className="h-4 w-4 text-white" />
                   </button>
                   <input
                     type="file"
@@ -185,86 +185,6 @@ export default function BusinessProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Contact & Legal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact & Legal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Company Email</Label>
-                  <Input id="email" type="email" defaultValue="ceo@sendexa.co" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Company Phone</Label>
-                  <Input id="phone" type="tel" defaultValue="0551196764" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <Input id="website" type="url" defaultValue="https://sendexa.co" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="taxId">Tax Identification Number</Label>
-                  <div className="flex items-center gap-2">
-                    <Landmark className="h-4 w-4 text-muted-foreground" />
-                    <Input id="taxId" defaultValue="C123456789" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="regNumber">Registration Number</Label>
-                  <Input id="regNumber" defaultValue="CS12345678" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vatNumber">VAT Number</Label>
-                  <Input id="vatNumber" defaultValue="VAT123456789" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Social Media & Additional Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Social Media & Additional Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facebook">Facebook</Label>
-                  <Input id="facebook" placeholder="https://facebook.com/yourpage" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter">Twitter</Label>
-                  <Input id="twitter" placeholder="https://twitter.com/yourhandle" />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin">LinkedIn</Label>
-                  <Input id="linkedin" placeholder="https://linkedin.com/company/yourcompany" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input id="instagram" placeholder="https://instagram.com/yourhandle" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="businessHours">Business Hours</Label>
-                <Input id="businessHours" defaultValue="Monday - Friday, 8:00 AM - 5:00 PM" />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Documents Section */}
           <Card>
             <CardHeader>
@@ -276,16 +196,6 @@ export default function BusinessProfilePage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Certificate of Incorporation</Label>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Document
-                  </Button>
-                  <span className="text-sm text-muted-foreground">PDF, Max 5MB</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Tax Clearance Certificate</Label>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">
                     <Upload className="mr-2 h-4 w-4" />

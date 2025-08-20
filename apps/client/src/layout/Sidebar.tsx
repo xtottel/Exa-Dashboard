@@ -4,7 +4,7 @@ import type * as React from "react";
 import {
   ChevronDown,
   ChevronRight,
-  CreditCard,
+
   MessageSquareText,
   FileText,
   PieChart,
@@ -12,6 +12,7 @@ import {
   LockKeyhole,
   FileChartPie,
   Clapperboard,
+  ShoppingCart,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -47,7 +48,7 @@ const sectionIcons = {
   "OTP": LockKeyhole,
   "Reports": FileChartPie,
   "Settings": Cog,
-  "Credits": CreditCard,
+  "Credits": ShoppingCart,
 } as const;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

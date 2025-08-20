@@ -14,7 +14,7 @@ import {
 import {
   Plus,
   MessageSquareText,
-  Wallet,
+
   CreditCard,
 } from "lucide-react";
 
@@ -31,15 +31,11 @@ export function DesktopHeader() {
     <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex">
       {/* Left: Branding */}
       <div className="text-lg font-semibold text-muted-foreground">
-        Sendexa Dashboard
+        {/* Sendexa Dashboard */}
       </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-6">
-        {/* SMS Units */}
-        {/* <div className="text-sm font-medium text-muted-foreground">
-          <span className="text-primary font-semibold">{smsUnits}</span> SMS Units
-        </div> */}
 
         {/* Quick Create Dropdown */}
         <DropdownMenu>
@@ -52,10 +48,7 @@ export function DesktopHeader() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* <DropdownMenuItem onClick={() => router.push("/home/invoicing/create")}>
-              <ReceiptCent className="w-4 h-4 mr-2" />
-              Create Invoice
-            </DropdownMenuItem> */}
+        
             <DropdownMenuItem onClick={() => router.push("/home/sms/send")}>
               <MessageSquareText className="w-4 h-4 mr-2" />
               Send Message
@@ -64,12 +57,10 @@ export function DesktopHeader() {
               <CreditCard className="w-4 h-4 mr-2" />
               Buy Credit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/home/balance/topup")}>
-              <Wallet className="w-4 h-4 mr-2" />
-              Top Up Balance
-            </DropdownMenuItem>
+       
           </DropdownMenuContent>
         </DropdownMenu>
+
 
         {/* Profile Dropdown */}
         <DropdownMenu>

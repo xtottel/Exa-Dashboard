@@ -12,7 +12,7 @@ export default function SecuritySettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/home/settings">
+          <Link href="/admin/settings">
             <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>

@@ -6,30 +6,16 @@
     },
     {
       "title": "Businesses",
-      "url": "/admin/business"
-    },
-    {
-      "title": "Messaging",
-      "url": "/admin/messaging",
-      "items": [
-        {
-          "title": "Send SMS",
-          "url": "/admin/messaging/sms/send"
-        },
-        {
-          "title": "Sendexa IDs",
-          "url": "/admin/messaging/sender-ids"
-        }
-      ]
+      "url": "/admin/businesses"
     },
     {
       "title": "Sender IDs",
       "url": "/admin/sender-ids",
       "items": [
-        { "title": "Pending Requests", "url": "/admin/sender-ids/pending" },
-        { "title": "Approved", "url": "/admin/sender-ids/approved" },
-        { "title": "Rejected", "url": "/admin/sender-ids/rejected" },
-        { "title": "All Sender IDs", "url": "/admin/sender-ids/manage" }
+        { "title": "Pending IDs", "url": "/admin/sender-ids/pending" },
+        { "title": "Approved IDs", "url": "/admin/sender-ids/approved" },
+        { "title": "Rejected IDs", "url": "/admin/sender-ids/rejected" },
+        { "title": "All Sender IDs", "url": "/admin/sender-ids/all" }
       ]
     },
     {
@@ -38,11 +24,11 @@
       "items": [
         {
           "title": "SMS History",
-          "url": "/admin/reports/sms-history"
+          "url": "/admin/reports/sms"
         },
         {
           "title": "OTP Statistics",
-          "url": "/admin/reports/otp-statistics"
+          "url": "/admin/reports/otp"
         }
       ]
     },

@@ -17,7 +17,7 @@ import {
   LogOut,
   User,
   Plus,
-  Wallet,
+ 
   MessageSquareText,
   CreditCard,
 } from "lucide-react";
@@ -63,12 +63,6 @@ export function MobileHeader() {
               <CreditCard className="mr-2 size-4" />
               Buy Credit
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => router.push("/home/balance/topup")}
-            >
-              <Wallet className="mr-2 size-4" />
-              Top Up Balance
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -87,9 +81,6 @@ export function MobileHeader() {
               <p className="text-sm font-semibold text-foreground">
                 {userName}
               </p>
-              {/* <p className="text-xs text-muted-foreground">
-                {smsUnits.toLocaleString()} SMS Units
-              </p> */}
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/home/settings/profile")}>

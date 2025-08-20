@@ -50,6 +50,8 @@ const badgeVariants = cva(
           "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
         canceled:
           "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
+           suspended:
+          "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
       },
     },
     compoundVariants: [
@@ -103,6 +105,11 @@ const badgeVariants = cva(
         status: "canceled",
         className: "[&>svg]:text-red-500 dark:[&>svg]:text-red-400",
       },
+      {
+        variant: "status",
+        status: "suspended",
+        className: "[&>svg]:text-red-500 dark:[&>svg]:text-red-400",
+      },
     ],
     defaultVariants: {
       variant: "default",
@@ -120,6 +127,7 @@ const statusIcons = {
   failed: <AlertCircle size={14} />,
   canceled: <XCircle size={14} />,
   rejected: <XCircle size={14} />,
+  suspended: <XCircle size={14} />,
 };
 
 interface BadgeProps
