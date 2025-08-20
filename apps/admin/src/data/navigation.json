@@ -5,19 +5,8 @@
       "url": "/admin"
     },
     {
-      "title": "Users",
-      "url": "/admin/users",
-      "items": [
-        {
-          "title": "All Users",
-          "url": "/admin/users"
-        },
-        {
-          "title": "Admins",
-          "url": "/admin/users/admins",
-          "permission": "superadmin"
-        }
-      ]
+      "title": "Businesses",
+      "url": "/admin/business"
     },
     {
       "title": "Messaging",
@@ -28,81 +17,43 @@
           "url": "/admin/messaging/sms/send"
         },
         {
-          "title": "Sender IDs",
+          "title": "Sendexa IDs",
           "url": "/admin/messaging/sender-ids"
-        },
-        {
-          "title": "SMS Logs",
-          "url": "/admin/messaging/sms/logs"
-        },
-        {
-          "title": "Templates",
-          "url": "/admin/messaging/templates"
         }
       ]
     },
     {
-      "title": "Approvals",
-      "url": "/admin/approvals",
+      "title": "Sender IDs",
+      "url": "/admin/sender-ids",
       "items": [
-        {
-          "title": "Sender ID Requests",
-          "url": "/admin/approvals/sender-ids"
-        }
+        { "title": "Pending Requests", "url": "/admin/sender-ids/pending" },
+        { "title": "Approved", "url": "/admin/sender-ids/approved" },
+        { "title": "Rejected", "url": "/admin/sender-ids/rejected" },
+        { "title": "All Sender IDs", "url": "/admin/sender-ids/manage" }
       ]
     },
     {
-      "title": "Credits & Billing",
-      "url": "/admin/credits",
-      "items": [
-        {
-          "title": "User Balances",
-          "url": "/admin/credits/user-balances"
-        },
-        {
-          "title": "Purchase Logs",
-          "url": "/admin/credits/purchases"
-        },
-        {
-          "title": "Invoices",
-          "url": "/admin/credits/invoices"
-        }
-      ]
-    },
-    {
-      "title": "Reports & Insights",
+      "title": "Reports",
       "url": "/admin/reports",
       "items": [
         {
           "title": "SMS History",
-          "url": "/admin/reports/sms"
+          "url": "/admin/reports/sms-history"
         },
         {
           "title": "OTP Statistics",
-          "url": "/admin/reports/otp"
-        },
-        {
-          "title": "Revenue",
-          "url": "/admin/reports/revenue"
+          "url": "/admin/reports/otp-statistics"
         }
       ]
     },
+
     {
-      "title": "System Settings",
-      "url": "/admin/settings",
+      "title": "Finance",
+      "url": "/admin/finance",
       "items": [
         {
-          "title": "API Keys",
-          "url": "/admin/settings/api-keys"
-        },
-        {
-          "title": "Webhooks",
-          "url": "/admin/settings/webhooks"
-        },
-        {
-          "title": "Admin Permissions",
-          "url": "/admin/settings/admins",
-          "permission": "superadmin"
+          "title": "Transactions",
+          "url": "/admin/finance/transactions"
         }
       ]
     }

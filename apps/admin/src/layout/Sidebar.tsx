@@ -4,18 +4,17 @@ import type * as React from "react";
 import {
   ChevronDown,
   ChevronRight,
-  CreditCard,
   MessageSquareText,
   FileText,
   PieChart,
   Cog,
-  // LockKeyhole,
   FileChartPie,
-  // Headset,
-  BadgeCheck,
+ IdCard,
   LifeBuoy,
   ScrollText,
   Users,
+  Store,
+  Landmark,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -46,10 +45,11 @@ import { useRouter } from "next/navigation";
 const sectionIcons = {
   Dashboard: PieChart,
   "Users": Users,
+  "Businesses": Store,
   "Messaging": MessageSquareText,
   Reports: FileChartPie,
-  "Credit & Billing": CreditCard,
-  Approvals: BadgeCheck,
+  "Finance": Landmark,
+  "Sender IDs":IdCard,
   "System Settings": Cog,
   "Audit & Logs": ScrollText,
   Support: LifeBuoy,
@@ -261,7 +261,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         <div className="mt-auto p-4 border-t border-white/10 bg-gradient-to-r from-white/5 via-white/3 to-transparent">
           <div
-            onClick={() => router.push("/home/settings")}
+            onClick={() => router.push("/admin/settings")}
             className="flex items-center gap-3 p-3 rounded-lg cursor-pointer bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/30 transition-colors duration-300"
           >
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary/20">
