@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -35,6 +36,8 @@ export default function SignUpForm() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -50,7 +53,7 @@ export default function SignUpForm() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("https://onetime.sendexa.co/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -69,6 +72,9 @@ export default function SignUpForm() {
       setLoading(false);
     }
   };
+
+  // Get the current value of the terms checkbox
+  const termsValue = watch("terms");
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
@@ -146,7 +152,11 @@ export default function SignUpForm() {
           </div>
 
           <div className="flex items-start space-x-2">
-            <Checkbox id="terms" {...register("terms")} />
+            <Checkbox 
+              id="terms" 
+              checked={termsValue}
+              onCheckedChange={(checked) => setValue("terms", checked === true)}
+            />
             <Label htmlFor="terms" className="text-sm font-normal text-gray-600 dark:text-gray-400">
               I agree to the{" "}
               <Link href="https://sendexa.co/legal/terms" className="text-brand-500 hover:underline">

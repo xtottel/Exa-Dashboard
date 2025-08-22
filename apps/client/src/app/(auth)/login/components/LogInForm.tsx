@@ -8,6 +8,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { EyeOff, Eye } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,8 @@ type FormData = z.infer<typeof schema>;
 export default function LogInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('from') || '/apps/home';
 
   const {
     register,
@@ -37,13 +40,53 @@ export default function LogInForm() {
     },
   });
 
+  // Function to set cookies securely
+  const setCookie = (name: string, value: string, days: number) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    
+    document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure=${process.env.NODE_ENV === 'production'}; sameSite=lax`;
+  };
+
+  // Function to handle successful login
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSuccessfulLogin = (result: any) => {
+    // Set access token cookie (1 week expiry)
+    if (result.accessToken) {
+      setCookie('accessToken', result.accessToken, 7);
+    }
+    
+    // Set refresh token cookie (30 days expiry)
+    if (result.refreshToken) {
+      setCookie('refreshToken', result.refreshToken, 30);
+    }
+    
+    // Set user data in localStorage for client-side access
+    if (result.user) {
+      localStorage.setItem('user', JSON.stringify(result.user));
+    }
+    
+    // Set Bearer token for immediate API calls
+    if (result.accessToken) {
+      localStorage.setItem('bearerToken', result.accessToken);
+    }
+    
+    toast.success("Login successful!");
+    
+    // Redirect to intended page or dashboard
+    window.location.href = redirectTo;
+  };
+
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
+        credentials: 'include', // Include cookies in request
       });
 
       const result = await res.json();
@@ -51,15 +94,49 @@ export default function LogInForm() {
       if (!res.ok) {
         toast.error(result.error || "Login failed");
       } else {
-        toast.success("Login successful");
-        window.location.href = "/";
+        handleSuccessfulLogin(result);
       }
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  // Function to handle demo/login (if needed)
+  // const handleDemoLogin = async () => {
+  //   setLoading(true);
+  //   try {
+  //     // Example demo credentials - adjust as needed
+  //     const demoData = {
+  //       email: "demo@sendexa.co",
+  //       password: "demopassword123"
+  //     };
+
+  //     const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
+  //       method: "POST",
+  //       headers: { 
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(demoData),
+  //       credentials: 'include',
+  //     });
+
+  //     const result = await res.json();
+
+  //     if (!res.ok) {
+  //       toast.error(result.error || "Demo login failed");
+  //     } else {
+  //       handleSuccessfulLogin(result);
+  //     }
+  //   } catch (error) {
+  //     console.error('Demo login error:', error);
+  //     toast.error("Something went wrong. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
@@ -141,17 +218,43 @@ export default function LogInForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
+
+            {/* Demo Login Button (optional) */}
+            {/* <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
+              disabled={loading}
+              onClick={handleDemoLogin}
+            >
+              {loading ? "Logging in..." : "Try Demo Account"}
+            </Button> */}
           </form>
 
           {/* Footer */}
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don’t have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="text-brand-500 hover:underline"
             >
               Sign Up
             </Link>
+          </div>
+
+          {/* Privacy Notice */}
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              By logging in, you agree to our{" "}
+              <Link href="https://sendexa.co/legal/terms" className="text-brand-500 hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="https://sendexa.co/legal/privacy" className="text-brand-500 hover:underline">
+                Privacy Policy
+              </Link>
+              {/* . Your login session will be stored securely using HTTP-only cookies. */}
+            </p>
           </div>
         </div>
       </div>
