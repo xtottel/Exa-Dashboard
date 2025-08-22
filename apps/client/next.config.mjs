@@ -11,57 +11,58 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "cdn.sendexa.co",
-        port: "",
         pathname: "/**",
       },
     ],
   },
+
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "https://onetime.sendexa.co/api/:path*", // Changed to actual API URL
+        destination: "https://onetime.sendexa.co/api/:path*",
       },
     ];
   },
+
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/api/:path*", // Apply CORS only for API routes
         headers: [
-          { 
-            key: 'Access-Control-Allow-Origin', 
-            value: 'https://onetime.sendexa.co' 
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "https://onetime.sendexa.co", 
           },
           {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS'
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
           },
           {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-Requested-With'
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization, X-Requested-With",
           },
           {
-            key: 'Access-Control-Allow-Credentials',
-            value: 'true'
-          }
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
         ],
       },
     ];
   },
-  // Add this for proper cookie handling in development
+
   async redirects() {
     return [
       {
-        source: '/login',
+        source: "/login",
         has: [
           {
-            type: 'cookie',
-            key: 'accessToken',
+            type: "cookie",
+            key: "accessToken",
           },
         ],
+        destination: "/home",
         permanent: false,
-        destination: '/apps/home',
       },
     ];
   },
