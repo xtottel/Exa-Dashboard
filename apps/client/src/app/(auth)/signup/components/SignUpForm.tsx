@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -15,13 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
+// ✅ Schema now matches backend
 const schema = z.object({
-  fname: z.string().min(1, "First name is required"),
-  lname: z.string().min(1, "Last name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(7, "Phone number is too short"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  terms: z.boolean().refine(val => val, {
+  terms: z.boolean().refine((val) => val, {
     message: "You must agree to the terms",
   }),
 });
@@ -41,8 +41,8 @@ export default function SignUpForm() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      fname: "",
-      lname: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       password: "",
@@ -56,14 +56,22 @@ export default function SignUpForm() {
       const res = await fetch("https://onetime.sendexa.co/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          password: data.password,
+        }),
       });
 
       const result = await res.json();
+
       if (!res.ok) {
-        toast.error(result.error || "Signup failed");
+        // show backend error if available
+        toast.error(result.message || result.error || "Signup failed");
       } else {
-        toast.success("Signup successful! Check your email to verify.");
+        toast.success(result.message || "Signup successful! Check your email to verify.");
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
@@ -73,7 +81,6 @@ export default function SignUpForm() {
     }
   };
 
-  // Get the current value of the terms checkbox
   const termsValue = watch("terms");
 
   return (
@@ -100,17 +107,17 @@ export default function SignUpForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor="fname">First Name</Label>
-              <Input id="fname" {...register("fname")} />
-              {errors.fname && (
-                <p className="text-sm text-error-500 mt-1">{errors.fname.message}</p>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input id="firstName" {...register("firstName")} />
+              {errors.firstName && (
+                <p className="text-sm text-error-500 mt-1">{errors.firstName.message}</p>
               )}
             </div>
             <div>
-              <Label htmlFor="lname">Last Name</Label>
-              <Input id="lname" {...register("lname")} />
-              {errors.lname && (
-                <p className="text-sm text-error-500 mt-1">{errors.lname.message}</p>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input id="lastName" {...register("lastName")} />
+              {errors.lastName && (
+                <p className="text-sm text-error-500 mt-1">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -152,8 +159,8 @@ export default function SignUpForm() {
           </div>
 
           <div className="flex items-start space-x-2">
-            <Checkbox 
-              id="terms" 
+            <Checkbox
+              id="terms"
               checked={termsValue}
               onCheckedChange={(checked) => setValue("terms", checked === true)}
             />

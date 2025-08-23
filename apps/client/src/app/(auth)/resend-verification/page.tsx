@@ -2,7 +2,7 @@ import ResendVerificationForm from "./components/ResendVerificationForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Resend Verification | Sendexa Dashboard",
+  title: "Resend Verification ",
   description: "Log in to your Sendexa account to access your messaging and email services.",
 };
 

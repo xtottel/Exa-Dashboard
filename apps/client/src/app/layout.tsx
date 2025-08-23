@@ -18,7 +18,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: {
     default: "Sendexa Dashboard",
-    template: "%s | Sendexa",
+    template: "%s | Sendexa Dashboard",
   },
   description:
     "Manage your SMS, OTP, Sender IDs, contacts, and credits with the Sendexa Dashboard — built for fast, reliable communication.",

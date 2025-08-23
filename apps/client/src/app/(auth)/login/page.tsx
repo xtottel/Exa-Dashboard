@@ -2,7 +2,7 @@ import LogInForm from "./components/LogInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Login | Sendexa Dashboard",
+  title: "Login",
   description: "Log in to your Sendexa account to access your messaging and email services.",
 };
 
