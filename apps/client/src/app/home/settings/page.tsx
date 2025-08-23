@@ -1,7 +1,7 @@
 // app/settings/page.tsx
 import { Card } from "@/components/ui/card";
 //import { Button } from "@/components/ui/button";
-import { User, Building, Key, Shield } from "lucide-react";
+import { User, Building, Key, Shield, Users } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -29,6 +29,12 @@ export default function SettingsPage() {
       description: "Configure authentication and security settings",
       icon: <Shield className="h-5 w-5" />,
       href: "/home/settings/security",
+    },
+    {
+      title: "Team",
+      description: "Manage your team members and permissions",
+      icon: <Users className="h-5 w-5" />,
+      href: "/home/settings/team",
     },
   ];
 

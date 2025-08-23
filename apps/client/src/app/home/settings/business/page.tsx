@@ -1,3 +1,5 @@
+
+
 // app/settings/business/page.tsx
 "use client";
 
@@ -11,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Upload, Image as Image2, Building2 } from "lucide-react";
+import { ChevronLeft, Upload, Image as Image2, Building2} from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -27,15 +29,20 @@ import {
 
 export default function BusinessProfilePage() {
   const [logo, setLogo] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [businessType, setBusinessType] = useState("private");
+  const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
+    certificate: null,
+    formA: null,
+  });
+
+
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        // 2MB limit
         toast.error("Logo size should be less than 2MB");
         return;
       }
@@ -48,12 +55,26 @@ export default function BusinessProfilePage() {
   };
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click();
+    logoInputRef.current?.click();
   };
+
+  const handleDocUpload = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size should be less than 5MB");
+        return;
+      }
+      setDocuments((prev) => ({ ...prev, [key]: file }));
+      toast.success(`${file.name} uploaded successfully`);
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
@@ -70,9 +91,7 @@ export default function BusinessProfilePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Business Profile
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Business Profile</h1>
           <p className="text-muted-foreground">
             Update your company details and branding
           </p>
@@ -81,13 +100,11 @@ export default function BusinessProfilePage() {
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-6">
-          {/* Company Branding Section */}
+          {/* Company Branding */}
           <Card>
             <CardHeader>
               <CardTitle>Company Branding</CardTitle>
-              <CardDescription>
-                Upload your logo and set brand colors
-              </CardDescription>
+              <CardDescription>Upload your logo and set brand colors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-6">
@@ -107,18 +124,14 @@ export default function BusinessProfilePage() {
                   </button>
                   <input
                     type="file"
-                    ref={fileInputRef}
+                    ref={logoInputRef}
                     onChange={handleLogoUpload}
                     accept="image/*"
                     className="hidden"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={triggerFileInput}
-                  >
+                  <Button variant="outline" type="button" onClick={triggerFileInput}>
                     <Upload className="mr-2 h-4 w-4" />
                     Upload Logo
                   </Button>
@@ -130,12 +143,17 @@ export default function BusinessProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Company Information Section */}
+          {/* Company Info */}
           <Card>
             <CardHeader>
               <CardTitle>Company Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessId">Business ID</Label>
+                <Input id="businessId" value="exa-08025423" disabled />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name</Label>
                 <Input id="companyName" defaultValue="Sendexa Inc" />
@@ -173,13 +191,11 @@ export default function BusinessProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Documents Section */}
+          {/* Documents */}
           <Card>
             <CardHeader>
               <CardTitle>Company Documents</CardTitle>
-              <CardDescription>
-                Upload important business documents
-              </CardDescription>
+              <CardDescription>Upload important business documents</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
@@ -187,13 +203,25 @@ export default function BusinessProfilePage() {
                 <div className="space-y-2">
                   <Label>Certificate of Incorporation</Label>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => document.getElementById("certificateInput")?.click()}
+                    >
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload Document
+                      {documents.certificate ? "Change File" : "Upload Document"}
                     </Button>
-                    <span className="text-sm text-muted-foreground">
-                      PDF, Max 5MB
-                    </span>
+                    <input
+                      id="certificateInput"
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) => handleDocUpload("certificate", e)}
+                    />
+                    {documents.certificate && (
+                      <span className="text-sm">{documents.certificate.name}</span>
+                    )}
                   </div>
                 </div>
 
@@ -201,19 +229,32 @@ export default function BusinessProfilePage() {
                 <div className="space-y-2">
                   <Label>Form A</Label>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => document.getElementById("formAInput")?.click()}
+                    >
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload Document
+                      {documents.formA ? "Change File" : "Upload Document"}
                     </Button>
-                    <span className="text-sm text-muted-foreground">
-                      PDF, Max 5MB
-                    </span>
+                    <input
+                      id="formAInput"
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) => handleDocUpload("formA", e)}
+                    />
+                    {documents.formA && (
+                      <span className="text-sm">{documents.formA.name}</span>
+                    )}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Action buttons */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" asChild>
               <Link href="/home/settings">Cancel</Link>
