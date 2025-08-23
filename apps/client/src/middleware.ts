@@ -1,8 +1,9 @@
+
 // middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/apps/home", "/home", "/apps/profile"];
+const protectedRoutes = ["/apps/home", "/home", "/settings/profile"];
 const authRoutes = ["/login", "/signup", "/forgot-password"];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const publicRoutes = ["/", "/verify-email", "/reset-password", "/resend-verification"];
@@ -33,8 +34,8 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.includes(pathname);
   const token = request.cookies.get("token")?.value;
 
-  // ✅ Shortcut: if token exists and user is going to /home, let them in directly
-  if (pathname === "/home" && token) {
+  // ✅ Shortcut: if token exists and user is anywhere inside /home, let them in
+  if (pathname.startsWith("/home") && token) {
     return NextResponse.next();
   }
 

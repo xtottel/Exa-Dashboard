@@ -1,30 +1,41 @@
-
 // app/settings/business/page.tsx
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Upload, Image as Image2,  Building2,  } from "lucide-react";
+import { ChevronLeft, Upload, Image as Image2, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function BusinessProfilePage() {
   const [logo, setLogo] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [businessType, setBusinessType] = useState("private");
-  const [incorporationDate, setIncorporationDate] = useState("2020-01-15");
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      if (file.size > 2 * 1024 * 1024) {
+        // 2MB limit
         toast.error("Logo size should be less than 2MB");
         return;
       }
@@ -59,7 +70,9 @@ export default function BusinessProfilePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Business Profile</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Business Profile
+          </h1>
           <p className="text-muted-foreground">
             Update your company details and branding
           </p>
@@ -127,11 +140,11 @@ export default function BusinessProfilePage() {
                 <Label htmlFor="companyName">Company Name</Label>
                 <Input id="companyName" defaultValue="Sendexa Inc" />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="companyDescription">Company Description</Label>
-                <Textarea 
-                  id="companyDescription" 
+                <Textarea
+                  id="companyDescription"
                   defaultValue="Leading SMS communication platform in Ghana"
                   rows={3}
                 />
@@ -153,33 +166,8 @@ export default function BusinessProfilePage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="incorporationDate">Incorporation Date</Label>
-                  <Input 
-                    id="incorporationDate" 
-                    type="date" 
-                    value={incorporationDate}
-                    onChange={(e) => setIncorporationDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Business Address</Label>
-                <Input id="address" defaultValue="123 Business Ave, Accra" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" defaultValue="Accra" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
-                  <Input id="region" defaultValue="Greater Accra" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input id="country" defaultValue="Ghana" />
+                  <Label htmlFor="address">Business Address</Label>
+                  <Input id="address" defaultValue="123 Business Ave, Accra" />
                 </div>
               </div>
             </CardContent>
@@ -193,15 +181,34 @@ export default function BusinessProfilePage() {
                 Upload important business documents
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Certificate of Incorporation</Label>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Document
-                  </Button>
-                  <span className="text-sm text-muted-foreground">PDF, Max 5MB</span>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Certificate of Incorporation */}
+                <div className="space-y-2">
+                  <Label>Certificate of Incorporation</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Document
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      PDF, Max 5MB
+                    </span>
+                  </div>
+                </div>
+
+                {/* Form A */}
+                <div className="space-y-2">
+                  <Label>Form A</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Document
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      PDF, Max 5MB
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
