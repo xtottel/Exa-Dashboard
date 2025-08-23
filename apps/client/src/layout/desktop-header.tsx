@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,18 +16,23 @@ import {
 import {
   Plus,
   MessageSquareText,
-
   CreditCard,
+  Settings,
+  ShieldCheck,
+  Building2,
+  LogOut,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+// Update the path below to the correct location of your logout utility
+// For example, if it's in src/auth/logout.ts, use:
+import { logout } from "@/lib/logout";
 
 export function DesktopHeader() {
   const router = useRouter();
 
   // Static sample data (replace with real values from context or props)
   const userName = "Collins Joe";
-  // const smsUnits = 6420;
 
   return (
     <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex">
@@ -53,14 +60,12 @@ export function DesktopHeader() {
               <MessageSquareText className="w-4 h-4 mr-2" />
               Send Message
             </DropdownMenuItem>
-           <DropdownMenuItem onClick={() => router.push("/home/credits/buy")}>
+            <DropdownMenuItem onClick={() => router.push("/home/credits/buy")}>
               <CreditCard className="w-4 h-4 mr-2" />
               Buy Credit
             </DropdownMenuItem>
-       
           </DropdownMenuContent>
         </DropdownMenu>
-
 
         {/* Profile Dropdown */}
         <DropdownMenu>
@@ -73,14 +78,29 @@ export function DesktopHeader() {
               <span className="text-sm font-medium text-muted-foreground">{userName}</span>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={() => router.push("/home/settings/profile")}>
-              Profile
+              <Settings className="w-4 h-4 mr-2" />
+              Profile Settings
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/home/settings/security")}>
+              <ShieldCheck className="w-4 h-4 mr-2" />
+              Security
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/home/settings/business")}>
+              <Building2 className="w-4 h-4 mr-2" />
+              Business
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 hover:text-red-700">
+            <DropdownMenuItem
+              onClick={logout}
+              className="text-red-600 hover:text-red-700 focus:text-red-700"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

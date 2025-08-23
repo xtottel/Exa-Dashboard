@@ -17,17 +17,19 @@ import {
   LogOut,
   User,
   Plus,
- 
   MessageSquareText,
   CreditCard,
+  ShieldCheck,
+  Building2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { logout } from "@/lib/logout"; // ✅ import logout util
 
 const userName = "Collins Joe";
-// const smsUnits = 6420;
 
 export function MobileHeader() {
   const router = useRouter();
+
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
       {/* Left: Sidebar trigger + logo */}
@@ -87,8 +89,19 @@ export function MobileHeader() {
               <User className="mr-2 size-4" />
               Profile
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/home/settings/security")}>
+              <ShieldCheck className="mr-2 size-4" />
+              Security
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/home/settings/business")}>
+              <Building2 className="mr-2 size-4" />
+              Business
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 hover:text-red-700">
+            <DropdownMenuItem
+              onClick={logout}
+              className="text-red-600 hover:text-red-700 focus:text-red-700"
+            >
               <LogOut className="mr-2 size-4" />
               Log out
             </DropdownMenuItem>
