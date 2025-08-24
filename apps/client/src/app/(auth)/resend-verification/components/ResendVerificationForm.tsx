@@ -35,11 +35,14 @@ export default function ResendVerificationForm() {
   const onSubmit = async (data: ResendVerificationData) => {
     setLoading(true);
     try {
-      const res = await fetch("https://onetime.sendexa.co/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "https://onetime.sendexa.co/api/auth/resend-verification",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
 
       const result = await res.json();
       if (!res.ok) {
@@ -47,8 +50,8 @@ export default function ResendVerificationForm() {
       } else {
         toast.success("Verification email sent! Check your inbox.");
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
+      console.error("Resend verification error:", err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -81,7 +84,9 @@ export default function ResendVerificationForm() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-sm text-error-500 mt-1">{errors.email.message}</p>
+              <p className="text-sm text-error-500 mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 

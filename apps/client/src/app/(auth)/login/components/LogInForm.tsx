@@ -10,7 +10,6 @@ import Image from "next/image";
 import { EyeOff, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -46,68 +45,65 @@ function LoginFormContent() {
   });
 
   // Cookie helper
-  const setCookie = (name: string, value: string, days: number) => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  // const setCookie = (name: string, value: string, days: number) => {
+  //   const expires = new Date();
+  //   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
 
-    document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
-  };
+  //   document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
+  // };
 
   // ✅ Handle login success
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSuccessfulLogin = (result: any) => {
-  if (result.token) {
-    setCookie("token", result.token, 7);
-    localStorage.setItem("bearerToken", result.token);
-  }
+  //   const handleSuccessfulLogin = (result: any) => {
+  //   if (result.token) {
+  //     setCookie("token", result.token, 7);
+  //     localStorage.setItem("bearerToken", result.token);
+  //   }
 
-  if (result.user) {
-    localStorage.setItem("user", JSON.stringify(result.user));
-  }
+  //   if (result.user) {
+  //     localStorage.setItem("user", JSON.stringify(result.user));
+  //   }
 
-  toast.success(result.message || "Login successful!");
-  router.push(redirectTo);  // ✅ smooth client-side redirect
-};
-
+  //   toast.success(result.message || "Login successful!");
+  //   router.push(redirectTo);  // ✅ smooth client-side redirect
+  // };
 
   // ✅ Handle login errors
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleApiErrors = (result: any) => {
-    if (result.errors && Array.isArray(result.errors)) {
-      result.errors.forEach((err: string) => toast.error(err));
-    } else if (typeof result.message === "string") {
-      toast.error(result.message);
-    } else if (typeof result.error === "string") {
-      toast.error(result.error);
-    } else {
-      toast.error("Login failed. Please try again.");
-    }
-  };
+  // const handleApiErrors = (result: any) => {
+  //   if (result.errors && Array.isArray(result.errors)) {
+  //     result.errors.forEach((err: string) => toast.error(err));
+  //   } else if (typeof result.message === "string") {
+  //     toast.error(result.message);
+  //   } else if (typeof result.error === "string") {
+  //     toast.error(result.error);
+  //   } else {
+  //     toast.error("Login failed. Please try again.");
+  //   }
+  // };
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    try {
-      const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
 
-      const result = await res.json();
+    const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+      credentials: "include",
+    });
 
-      if (!res.ok) {
-        handleApiErrors(result);
-      } else {
-        handleSuccessfulLogin(result);
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
+    const result = await res.json();
+
+    if (!res.ok) {
       setLoading(false);
+      toast.error(result.error || "Login failed. Please try again.");
+    } else {
+      setLoading(false);
+      toast.success(result.message || "Login successful");
+      localStorage.setItem("sendexaToken", result.token);
+      router.push("/dashboard");
     }
   };
 
