@@ -1,4 +1,4 @@
-import ResendVerificationForm from "./components/ResendVerificationForm";
+import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

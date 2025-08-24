@@ -1,8 +1,8 @@
 
-
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import {
@@ -19,20 +19,59 @@ import {
   CreditCard,
   Settings,
   ShieldCheck,
-  Building2,
   LogOut,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
-// Update the path below to the correct location of your logout utility
-// For example, if it's in src/auth/logout.ts, use:
 import { logout } from "@/lib/logout";
+
+type User = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+};
 
 export function DesktopHeader() {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
-  // Static sample data (replace with real values from context or props)
-  const userName = "Collins Joe";
+  // Fetch logged in user profile
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const res = await fetch("/api/user/profile", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Failed to fetch profile");
+        }
+
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // Full name & initials
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest";
+  const initials = user
+    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()
+    : "U";
 
   return (
     <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex">
@@ -43,11 +82,13 @@ export function DesktopHeader() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-6">
-
         {/* Quick Create Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="text-sm font-medium flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="text-sm font-medium flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Create New
             </Button>
@@ -55,7 +96,7 @@ export function DesktopHeader() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-        
+
             <DropdownMenuItem onClick={() => router.push("/home/sms/send")}>
               <MessageSquareText className="w-4 h-4 mr-2" />
               Send Message
@@ -72,29 +113,29 @@ export function DesktopHeader() {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer rounded-full ring-2 ring-muted-foreground/30 px-2 py-1 transition hover:ring-foreground">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/user.svg" alt="@user" />
-                <AvatarFallback>CL</AvatarFallback>
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium text-muted-foreground">{userName}</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {fullName}
+              </span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={() => router.push("/home/settings/profile")}>
+            <DropdownMenuItem
+              onClick={() => router.push("/home/settings/profile")}
+            >
               <Settings className="w-4 h-4 mr-2" />
               Profile Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/home/settings/security")}>
+            <DropdownMenuItem
+              onClick={() => router.push("/home/settings/security")}
+            >
               <ShieldCheck className="w-4 h-4 mr-2" />
               Security
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/home/settings/business")}>
-              <Building2 className="w-4 h-4 mr-2" />
-              Business
-            </DropdownMenuItem>
-
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={logout}

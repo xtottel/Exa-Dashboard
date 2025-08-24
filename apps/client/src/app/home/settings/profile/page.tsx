@@ -1,4 +1,3 @@
-
 // app/home/settings/profile/page.tsx
 "use client";
 
@@ -8,20 +7,71 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronLeft, Upload, Camera, Pencil } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  idNumber?: string;
+  address?: string;
+  profileImage?: string;
+}
 
 export default function ProfileSettingsPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserProfile>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    idNumber: "",
+    address: ""
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("/api/user/profile", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch profile");
+      }
+
+      const user = await res.json();
+      setUserData(user);
+      if (user.profileImage) {
+        setProfileImage(user.profileImage);
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch profile");
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      if (file.size > 2 * 1024 * 1024) {
         toast.error("Image size should be less than 2MB");
         return;
       }
@@ -37,15 +87,52 @@ export default function ProfileSettingsPage() {
     fileInputRef.current?.click();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserData({
+      ...userData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...userData,
+          profileImage: profileImage
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update profile");
+      }
+
       toast.success("Profile updated successfully");
-    }, 1500);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (isFetching) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -77,7 +164,9 @@ export default function ProfileSettingsPage() {
                 <div className="relative group">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={profileImage || "/user.svg"} />
-                    <AvatarFallback>CJ</AvatarFallback>
+                    <AvatarFallback>
+                      {userData.firstName?.[0]}{userData.lastName?.[0]}
+                    </AvatarFallback>
                   </Avatar>
                   <button
                     type="button"
@@ -119,44 +208,71 @@ export default function ProfileSettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="Collins Joe" />
+                  <Input 
+                    id="firstName" 
+                    value={userData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Vidzro" />
+                  <Input 
+                    id="lastName" 
+                    value={userData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="flex items-center gap-2">
-                    <Input id="email" type="email" defaultValue="ceo@sendexa.co" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={userData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex items-center gap-2">
-                    <Input id="phone" type="tel" defaultValue="0551196764" />
+                    <Input 
+                      id="phone" 
+                      type="tel" 
+                      value={userData.phone}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="id">Ghana Card Number</Label>
-                  <Input id="id" type="text" defaultValue="GHA-713937139-3" />
+                  <Label htmlFor="idNumber">Ghana Card Number</Label>
+                  <Input 
+                    id="idNumber" 
+                    type="text" 
+                    value={userData.idNumber || ""}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
                   <Input
                     id="address"
                     type="text"
-                    defaultValue="4R59+MW, Akatsi"
+                    value={userData.address || ""}
+                    onChange={handleInputChange}
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
-
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" asChild>

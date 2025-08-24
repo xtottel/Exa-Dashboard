@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,15 +21,56 @@ import {
   MessageSquareText,
   CreditCard,
   ShieldCheck,
-  Building2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/lib/logout"; // ✅ import logout util
 
-const userName = "Collins Joe";
+type User = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+};
 
 export function MobileHeader() {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  // Fetch logged in user profile
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const res = await fetch("/api/user/profile", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Failed to fetch profile");
+        }
+
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest";
+  const initials = user
+    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()
+    : "U";
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
@@ -73,16 +115,16 @@ export function MobileHeader() {
           <DropdownMenuTrigger asChild>
             <div className="cursor-pointer rounded-full ring-2 ring-muted-foreground/30 p-0.5 transition hover:ring-foreground">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="/user.svg" alt="@user" />
-                <AvatarFallback>CJ</AvatarFallback>
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-3 py-2">
               <p className="text-sm font-semibold text-foreground">
-                {userName}
+                {fullName}
               </p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/home/settings/profile")}>
@@ -92,10 +134,6 @@ export function MobileHeader() {
             <DropdownMenuItem onClick={() => router.push("/home/settings/security")}>
               <ShieldCheck className="mr-2 size-4" />
               Security
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/home/settings/business")}>
-              <Building2 className="mr-2 size-4" />
-              Business
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOff as EyeCloseIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,8 @@ type FormData = z.infer<typeof schema>;
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -71,9 +75,14 @@ export default function SignUpForm() {
         // show backend error if available
         toast.error(result.message || result.error || "Signup failed");
       } else {
+        setSignupSuccess(true);
         toast.success(result.message || "Signup successful! Check your email to verify.");
+        
+        // Redirect to success page after a short delay
+        setTimeout(() => {
+          router.push("/signup-success");
+        }, 1500);
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -82,6 +91,36 @@ export default function SignUpForm() {
   };
 
   const termsValue = watch("terms");
+
+  // If signup was successful, show a loading state before redirect
+  if (signupSuccess) {
+    return (
+      <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
+        <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+          <div className="flex justify-center mb-8">
+            <Image
+              src="https://cdn.sendexa.co/images/logo/exaweb.png"
+              alt="Sendexa Logo"
+              width={150}
+              height={50}
+            />
+          </div>
+
+          <div className="text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 mx-auto border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h1 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">
+              Signup Successful!
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Redirecting to confirmation page...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">

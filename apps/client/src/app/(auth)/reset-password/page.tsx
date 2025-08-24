@@ -1,11 +1,11 @@
-import VerifyEmail from "@/components/auth/VerifyEmailForm";
+import ResetPassword from "@/components/auth/ResetPassword";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Verify Account ",
+  title: "Reset Password ",
   description: "Log in to your Sendexa account to access your messaging and email services.",
 };
 
 export default function LogIn() {
-  return <VerifyEmail />;
+  return <ResetPassword />;
 }

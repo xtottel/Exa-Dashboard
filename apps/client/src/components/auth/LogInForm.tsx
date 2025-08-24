@@ -10,7 +10,6 @@ import Image from "next/image";
 import { EyeOff, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -45,30 +44,24 @@ function LoginFormContent() {
     },
   });
 
-  // Cookie helper
-  const setCookie = (name: string, value: string, days: number) => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-
-    document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
-  };
-
   // ✅ Handle login success
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSuccessfulLogin = (result: any) => {
-  if (result.token) {
-    setCookie("token", result.token, 7);
-    localStorage.setItem("bearerToken", result.token);
-  }
+    if (result.token) {
+      localStorage.setItem("bearerToken", result.token);
+      
+      // Set token expiry (assuming 15 minutes expiry)
+      const expiryTime = Date.now() + (15 * 60 * 1000);
+      localStorage.setItem("tokenExpiry", expiryTime.toString());
+    }
 
-  if (result.user) {
-    localStorage.setItem("user", JSON.stringify(result.user));
-  }
+    if (result.user) {
+      localStorage.setItem("user", JSON.stringify(result.user));
+    }
 
-  toast.success(result.message || "Login successful!");
-  router.push(redirectTo);  // ✅ smooth client-side redirect
-};
-
+    toast.success(result.message || "Login successful!");
+    router.push(redirectTo);
+  };
 
   // ✅ Handle login errors
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,8 +187,19 @@ function LoginFormContent() {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 mr-2 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
 
