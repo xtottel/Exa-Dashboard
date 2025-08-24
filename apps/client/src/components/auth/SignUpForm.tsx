@@ -218,9 +218,17 @@ export default function SignUpForm() {
             <p className="text-sm text-error-500 mt-1">{errors.terms.message}</p>
           )}
 
-          <Button type="submit" disabled={loading} className="w-full">
+          {/* <Button type="submit" disabled={loading} className="w-full">
+            <div className="w-4 h-4 mr-2 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
             {loading ? "Signing up..." : "Sign Up"}
-          </Button>
+          </Button> */}
+          <Button type="submit" disabled={loading} className="w-full flex items-center justify-center">
+  {loading && (
+    <div className="w-4 h-4 mr-2 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+  )}
+  {loading ? "Signing up..." : "Sign Up"}
+</Button>
+
         </form>
 
         <div className="mt-5">

@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useState, Suspense } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { EyeOff, Eye } from "lucide-react";
@@ -27,6 +28,7 @@ type FormData = z.infer<typeof schema>;
 function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -48,11 +50,15 @@ function LoginFormContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSuccessfulLogin = (result: any) => {
     if (result.token) {
+      // Save token to localStorage
       localStorage.setItem("bearerToken", result.token);
       
-      // Set token expiry (assuming 15 minutes expiry)
-      const expiryTime = Date.now() + (15 * 60 * 1000);
+      // Set token expiry (assuming 1 hour expiry - adjust based on your JWT expiry)
+      const expiryTime = Date.now() + (60 * 60 * 1000); // 1 hour
       localStorage.setItem("tokenExpiry", expiryTime.toString());
+      
+      // Also set a cookie for middleware compatibility
+      document.cookie = `token=${result.token}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
     }
 
     if (result.user) {
@@ -60,7 +66,12 @@ function LoginFormContent() {
     }
 
     toast.success(result.message || "Login successful!");
-    router.push(redirectTo);
+    
+    // Set redirecting state and use router after a short delay
+    setIsRedirecting(true);
+    setTimeout(() => {
+      router.push(redirectTo);
+    }, 1000);
   };
 
   // ✅ Handle login errors
@@ -78,6 +89,8 @@ function LoginFormContent() {
   };
 
   const onSubmit = async (data: FormData) => {
+    if (isRedirecting) return; // Prevent multiple submissions during redirect
+    
     setLoading(true);
     try {
       const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
@@ -91,6 +104,8 @@ function LoginFormContent() {
 
       const result = await res.json();
 
+      console.log("Login response:", result); // Debug log
+
       if (!res.ok) {
         handleApiErrors(result);
       } else {
@@ -103,6 +118,35 @@ function LoginFormContent() {
       setLoading(false);
     }
   };
+
+  // Show loading state when redirecting
+  if (isRedirecting) {
+    return (
+      <div className="flex flex-col flex-1 lg:w-1/2 w-full">
+        <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+          <div className="flex justify-center mb-8">
+            <Image
+              src="https://cdn.sendexa.co/images/logo/exaweb.png"
+              alt="Sendexa Logo"
+              width={150}
+              height={50}
+            />
+          </div>
+          <div className="text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 mx-auto border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h1 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">
+              Redirecting...
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Login successful! Taking you to your dashboard.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
@@ -190,7 +234,7 @@ function LoginFormContent() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading}
+              disabled={loading || isRedirecting}
             >
               {loading ? (
                 <>
