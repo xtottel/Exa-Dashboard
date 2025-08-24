@@ -56,25 +56,21 @@ export default function SignUpForm() {
       const res = await fetch("https://onetime.sendexa.co/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          phone: data.phone,
-          password: data.password,
-        }),
+        body: JSON.stringify({ data }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
         // show backend error if available
-        toast.error(result.message || result.error || "Signup failed");
+        toast.error(result.error || "Signup failed");
       } else {
-        toast.success(result.message || "Signup successful! Check your email to verify.");
+        toast.success(
+          result.message || "Signup successful! Check your email to verify."
+        );
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
+      console.error("Signup error:", err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -110,14 +106,18 @@ export default function SignUpForm() {
               <Label htmlFor="firstName">First Name</Label>
               <Input id="firstName" {...register("firstName")} />
               {errors.firstName && (
-                <p className="text-sm text-error-500 mt-1">{errors.firstName.message}</p>
+                <p className="text-sm text-error-500 mt-1">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
             <div>
               <Label htmlFor="lastName">Last Name</Label>
               <Input id="lastName" {...register("lastName")} />
               {errors.lastName && (
-                <p className="text-sm text-error-500 mt-1">{errors.lastName.message}</p>
+                <p className="text-sm text-error-500 mt-1">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
           </div>
@@ -126,7 +126,9 @@ export default function SignUpForm() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-sm text-error-500 mt-1">{errors.email.message}</p>
+              <p className="text-sm text-error-500 mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -134,7 +136,9 @@ export default function SignUpForm() {
             <Label htmlFor="phone">Phone Number</Label>
             <Input id="phone" type="tel" {...register("phone")} />
             {errors.phone && (
-              <p className="text-sm text-error-500 mt-1">{errors.phone.message}</p>
+              <p className="text-sm text-error-500 mt-1">
+                {errors.phone.message}
+              </p>
             )}
           </div>
 
@@ -150,11 +154,17 @@ export default function SignUpForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
               >
-                {showPassword ? <EyeIcon size={18} /> : <EyeCloseIcon size={18} />}
+                {showPassword ? (
+                  <EyeIcon size={18} />
+                ) : (
+                  <EyeCloseIcon size={18} />
+                )}
               </span>
             </div>
             {errors.password && (
-              <p className="text-sm text-error-500 mt-1">{errors.password.message}</p>
+              <p className="text-sm text-error-500 mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -164,19 +174,30 @@ export default function SignUpForm() {
               checked={termsValue}
               onCheckedChange={(checked) => setValue("terms", checked === true)}
             />
-            <Label htmlFor="terms" className="text-sm font-normal text-gray-600 dark:text-gray-400">
+            <Label
+              htmlFor="terms"
+              className="text-sm font-normal text-gray-600 dark:text-gray-400"
+            >
               I agree to the{" "}
-              <Link href="https://sendexa.co/legal/terms" className="text-brand-500 hover:underline">
+              <Link
+                href="https://sendexa.co/legal/terms"
+                className="text-brand-500 hover:underline"
+              >
                 Terms and Conditions
               </Link>{" "}
               and{" "}
-              <Link href="https://sendexa.co/legal/privacy" className="text-brand-500 hover:underline">
+              <Link
+                href="https://sendexa.co/legal/privacy"
+                className="text-brand-500 hover:underline"
+              >
                 Privacy Policy
               </Link>
             </Label>
           </div>
           {errors.terms && (
-            <p className="text-sm text-error-500 mt-1">{errors.terms.message}</p>
+            <p className="text-sm text-error-500 mt-1">
+              {errors.terms.message}
+            </p>
           )}
 
           <Button type="submit" disabled={loading} className="w-full">
