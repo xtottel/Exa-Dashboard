@@ -9,23 +9,8 @@
       "url": "/admin/users"
     },
     {
-      "title": "Businesses",
-      "url": "/admin/businesses",
-      "items": [
-        { "title": "Pending", "url": "/admin/businesses/pending" },
-        { "title": "Verified", "url": "/admin/businesses/verified" },
-        { "title": "All Businesses", "url": "/admin/businesses/all" }
-      ]
-    },
-    {
       "title": "Sender IDs",
-      "url": "/admin/sender-ids",
-      "items": [
-        { "title": "Pending IDs", "url": "/admin/sender-ids/pending" },
-        { "title": "Approved IDs", "url": "/admin/sender-ids/approved" },
-        { "title": "Rejected IDs", "url": "/admin/sender-ids/rejected" },
-        { "title": "All Sender IDs", "url": "/admin/sender-ids/all" }
-      ]
+      "url": "/admin/sender-ids"
     },
     {
       "title": "Reports",
@@ -40,9 +25,7 @@
       "url": "/admin/finance",
       "items": [
         { "title": "Transactions", "url": "/admin/finance/transactions" },
-        { "title": "Credit Purchases", "url": "/admin/finance/credits" },
-        { "title": "Refund Requests", "url": "/admin/finance/refunds" },
-        { "title": "Invoices", "url": "/admin/finance/invoices" }
+        { "title": "Credit Purchases", "url": "/admin/finance/credits" }
       ]
     }
   ]
