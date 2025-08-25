@@ -1,4 +1,78 @@
-// middleware.ts
+
+// import { NextResponse } from "next/server";
+// import type { NextRequest } from "next/server";
+
+// const protectedRoutes = ["/apps/home", "/home", "/settings/profile"];
+// const authRoutes = ["/login", "/signup", "/forgot-password"];
+// // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const publicRoutes = ["/", "/verify-email", "/reset-password", "/resend-verification"];
+
+// export async function middleware(request: NextRequest) {
+//   const { pathname } = request.nextUrl;
+
+//   // ✅ Allow static & image requests
+//   if (
+//     pathname.startsWith("/_next") ||
+//     pathname.includes(".") // skip files
+//   ) {
+//     return NextResponse.next();
+//   }
+
+//   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+//   const isAuthRoute = authRoutes.includes(pathname);
+
+//   // ✅ Get token from cookies
+//   const token = request.cookies.get("token")?.value;
+
+//   // ✅ For protected routes, verify with backend
+//   if (isProtectedRoute) {
+//     const isAuthenticated = await verifyAuth(token);
+//     if (!isAuthenticated) {
+//       const loginUrl = new URL("/login", request.url);
+//       loginUrl.searchParams.set("from", pathname);
+//       return NextResponse.redirect(loginUrl);
+//     }
+//   }
+
+//   // ✅ Prevent logged-in users from visiting login/signup
+//   if (isAuthRoute && token) {
+//     const isAuthenticated = await verifyAuth(token);
+//     if (isAuthenticated) {
+//       return NextResponse.redirect(new URL("/home", request.url));
+//     }
+//   }
+
+//   return NextResponse.next();
+// }
+
+// // 🔒 Verify token with backend
+// async function verifyAuth(token: string | undefined): Promise<boolean> {
+//   if (!token) return false;
+
+//   try {
+//     const verifyRes = await fetch("https://onetime.sendexa.co/api/auth/verify", {
+//       method: "GET",
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//       cache: "no-store",
+//     });
+
+//     return verifyRes.ok;
+//   } catch (error) {
+//     console.error("Auth verification error:", error);
+//     return false;
+//   }
+// }
+
+// export const config = {
+//   matcher: [
+//     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+//   ],
+// };
+
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -10,73 +84,103 @@ const publicRoutes = ["/", "/verify-email", "/reset-password", "/resend-verifica
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Handle CORS for API routes
-  if (pathname.startsWith("/api/")) {
-    const response = NextResponse.next();
-    const origin = request.headers.get("origin");
+  console.log("🔍 Middleware processing:", pathname);
 
-    if (origin && origin.endsWith("sendexa.co")) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
-      response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-      response.headers.set("Access-Control-Allow-Credentials", "true");
-    }
-
-    if (request.method === "OPTIONS") {
-      return new NextResponse(null, { status: 200, headers: response.headers });
-    }
-
-    return response;
+  // ✅ Allow static & image requests
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.includes(".") // skip files
+  ) {
+    console.log("📁 Static file request, skipping middleware");
+    return NextResponse.next();
   }
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = authRoutes.includes(pathname);
-  
-  // Check for token in both cookie and Authorization header
-  let token = request.cookies.get("token")?.value;
-  
-  // If no token in cookie, check localStorage via special header
-  if (!token && request.headers.get("x-auth-token")) {
-    token = request.headers.get("x-auth-token")!;
-  }
 
-  // For protected routes, verify with API
+  console.log("📊 Route analysis:", {
+    pathname,
+    isProtectedRoute,
+    isAuthRoute
+  });
+
+  // ✅ Get token from cookies
+  const token = request.cookies.get("token")?.value;
+  console.log("🍪 Token from cookies:", token ? "Present" : "Missing");
+
+  // ✅ For protected routes, verify with backend
   if (isProtectedRoute) {
+    console.log("🛡️ Protected route detected, verifying auth...");
     const isAuthenticated = await verifyAuth(token);
+    console.log("🔐 Auth verification result:", isAuthenticated);
     
     if (!isAuthenticated) {
+      console.log("❌ Not authenticated, redirecting to login");
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
+    } else {
+      console.log("✅ Authenticated, allowing access to:", pathname);
     }
   }
 
+  // ✅ Prevent logged-in users from visiting login/signup
   if (isAuthRoute && token) {
+    console.log("🚫 Auth route detected with token, checking if valid...");
     const isAuthenticated = await verifyAuth(token);
+    console.log("🔐 Auth verification result for auth route:", isAuthenticated);
+    
     if (isAuthenticated) {
+      console.log("✅ Already authenticated, redirecting to home");
       return NextResponse.redirect(new URL("/home", request.url));
+    } else {
+      console.log("❌ Invalid token, allowing access to auth route");
     }
   }
 
+  console.log("➡️ Allowing request to proceed");
   return NextResponse.next();
 }
 
-// Verify token via backend
+// 🔒 Verify token with backend
 async function verifyAuth(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
+  if (!token) {
+    console.log("❌ No token provided for verification");
+    return false;
+  }
 
   try {
+    console.log("🔐 Verifying token with backend...");
     const verifyRes = await fetch("https://onetime.sendexa.co/api/auth/verify", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      cache: "no-store",
     });
+
+    console.log("📨 Verification response:", {
+      status: verifyRes.status,
+      statusText: verifyRes.statusText,
+      ok: verifyRes.ok
+    });
+
+    if (verifyRes.ok) {
+      try {
+        const userData = await verifyRes.json();
+        console.log("✅ Token valid, user details:", userData);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        console.log("✅ Token valid (no user data in response)");
+      }
+    } else {
+      console.log("❌ Token verification failed");
+    }
 
     return verifyRes.ok;
   } catch (error) {
-    console.error("Auth verification error:", error);
+    console.error("❌ Auth verification error:", error);
     return false;
   }
 }
