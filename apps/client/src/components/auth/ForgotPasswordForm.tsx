@@ -36,11 +36,14 @@ export default function ForgotPasswordForm() {
   const onSubmit = async (data: ForgotPasswordData) => {
     setLoading(true);
     try {
-      const res = await fetch("https://onetime.sendexa.co/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "https://onetime.sendexa.co/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
 
       const result = await res.json();
       if (!res.ok) {
@@ -49,7 +52,7 @@ export default function ForgotPasswordForm() {
         toast.success("Password reset email sent! Check your inbox.");
         setEmailSent(true);
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -61,19 +64,24 @@ export default function ForgotPasswordForm() {
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-4">
         <div className="flex justify-center mb-8">
-          <Image
-            src="https://cdn.sendexa.co/images/logo/exaweb.png"
-            alt="Sendexa Logo"
-            width={150}
-            height={50}
-          />
+         <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
         </div>
 
         {emailSent ? (
           <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div className="mb-4 text-green-500">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              <svg
+                className="w-16 h-16 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
               </svg>
             </div>
             <h1 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">
@@ -100,21 +108,23 @@ export default function ForgotPasswordForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
+                <Input
+                  id="email"
+                  type="email"
                   placeholder="Enter your email"
-                  {...register("email")} 
+                  {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-sm text-error-500 mt-1">{errors.email.message}</p>
+                  <p className="text-sm text-error-500 mt-1">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
-              <Button 
-                type="submit" 
-                disabled={loading} 
-                className="w-full"
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center bg-brand-500 hover:bg-brand-600 focus:ring-4 focus:ring-brand-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 text-white"
               >
                 {loading ? (
                   <>

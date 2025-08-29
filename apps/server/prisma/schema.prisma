@@ -1,0 +1,192 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  phone     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  apiKeys   ApiKey[]
+  webhooks  Webhook[]
+  settings  BusinessSettings?
+
+  @@map("businesses")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String   @unique
+  phone         String
+  password      String
+  emailVerified DateTime?
+  isActive      Boolean  @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  roleId        String
+  role          Role     @relation(fields: [roleId], references: [id])
+  verificationTokens VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+  authSessions  AuthSession[]
+  mfaSettings   MFASettings?
+  loginAttempts LoginAttempt[]
+
+  @@index([email, isActive])
+  @@index([businessId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[] // JSON array of permissions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  @@map("roles")
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token, userId])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token, userId])
+  @@map("password_reset_tokens")
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, type])
+  @@index([email, otp])
+  @@map("otps")
+}
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionToken String   @unique
+  refreshToken String   @unique
+  deviceInfo   String?
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  revokedAt    DateTime?
+
+  @@index([sessionToken])
+  @@index([refreshToken])
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  key         String   @unique
+  secret      String
+  permissions String[] // JSON array of permissions
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+  isActive    Boolean  @default(true)
+
+  @@map("api_keys")
+}
+
+model Webhook {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  url         String
+  events      String[] // JSON array of events to listen for
+  secret      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("webhooks")
+}
+
+model MFASettings {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  method     String   @default("NONE")
+  secret     String?
+  backupCodes String[]
+  isEnabled  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("mfa_settings")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  ipAddress String
+  userAgent String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ipAddress, createdAt])
+  @@index([email, createdAt])
+  @@map("login_attempts")
+}
+
+model BusinessSettings {
+  id              String   @id @default(cuid())
+  businessId      String   @unique
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  securityLevel   String   @default("STANDARD") // STANDARD, ENHANCED, STRICT
+  mfaRequired     Boolean  @default(false)
+  sessionTimeout  Int      @default(1440) // minutes
+  maxLoginAttempts Int     @default(5)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("business_settings")
+}

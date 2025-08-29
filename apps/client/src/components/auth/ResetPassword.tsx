@@ -14,13 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 
@@ -57,17 +59,20 @@ function ResetPasswordContent() {
         // Check if token exists and is not expired
         // Since we don't have a verify endpoint, we'll try to use the reset endpoint
         // with a dummy password to check token validity
-        const res = await fetch("https://onetime.sendexa.co/api/auth/reset-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            token, 
-            newPassword: "dummy_password_check" 
-          }),
-        });
+        const res = await fetch(
+          "https://onetime.sendexa.co/api/auth/reset-password",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              newPassword: "dummy_password_check",
+            }),
+          }
+        );
 
         const result = await res.json();
-        
+
         // If we get a specific error about invalid token, mark as invalid
         if (res.status === 404 || res.status === 400) {
           setTokenValid(false);
@@ -98,20 +103,23 @@ function ResetPasswordContent() {
 
     setLoading(true);
     try {
-      const res = await fetch("https://onetime.sendexa.co/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          token, 
-          newPassword: data.newPassword 
-        }),
-      });
+      const res = await fetch(
+        "https://onetime.sendexa.co/api/auth/reset-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            newPassword: data.newPassword,
+          }),
+        }
+      );
 
       const result = await res.json();
       if (!res.ok) {
         toast.error(result.message || "Password reset failed");
         setStatus("error");
-        
+
         // If token is invalid, update state
         if (res.status === 404 || res.status === 400) {
           setTokenValid(false);
@@ -152,8 +160,18 @@ function ResetPasswordContent() {
     return (
       <div className="text-center">
         <div className="mb-4 text-red-500">
-          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+          <svg
+            className="w-16 h-16 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
           </svg>
         </div>
         <h1 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">
@@ -162,7 +180,10 @@ function ResetPasswordContent() {
         <p className="mb-4 text-gray-500 dark:text-gray-400">
           This password reset link is invalid or has expired.
         </p>
-        <Button asChild className="w-full">
+        <Button
+          asChild
+          className="w-full flex items-center justify-center bg-brand-500 hover:bg-brand-600 focus:ring-4 focus:ring-brand-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 text-white"
+        >
           <Link href="/forgot-password">Request New Reset Link</Link>
         </Button>
       </div>
@@ -173,8 +194,18 @@ function ResetPasswordContent() {
     return (
       <div className="text-center">
         <div className="mb-4 text-green-500">
-          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          <svg
+            className="w-16 h-16 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            ></path>
           </svg>
         </div>
         <h1 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">
@@ -211,7 +242,9 @@ function ResetPasswordContent() {
             {...register("newPassword")}
           />
           {errors.newPassword && (
-            <p className="text-sm text-error-500 mt-1">{errors.newPassword.message}</p>
+            <p className="text-sm text-error-500 mt-1">
+              {errors.newPassword.message}
+            </p>
           )}
         </div>
 
@@ -224,15 +257,13 @@ function ResetPasswordContent() {
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-error-500 mt-1">{errors.confirmPassword.message}</p>
+            <p className="text-sm text-error-500 mt-1">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
-        <Button 
-          type="submit" 
-          disabled={loading}
-          className="w-full"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? (
             <>
               <div className="w-4 h-4 mr-2 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
@@ -281,12 +312,7 @@ export default function ResetPassword() {
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-4">
         <div className="flex justify-center mb-8">
-          <Image
-            src="https://cdn.sendexa.co/images/logo/exaweb.png"
-            alt="Sendexa Logo"
-            width={150}
-            height={50}
-          />
+          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
         </div>
 
         <Suspense fallback={<ResetPasswordFallback />}>

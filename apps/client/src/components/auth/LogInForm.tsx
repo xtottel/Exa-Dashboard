@@ -46,38 +46,44 @@ function LoginFormContent() {
     },
   });
 
-  // ✅ Handle login success
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSuccessfulLogin = (result: any) => {
-    console.log("✅ Login successful! Result:", result);
-    
-    if (result.token) {
-      // Save token to localStorage
-      localStorage.setItem("bearerToken", result.token);
-      
-      // Set token expiry (assuming 1 hour expiry - adjust based on your JWT expiry)
-      const expiryTime = Date.now() + (60 * 60 * 1000); // 1 hour
-      localStorage.setItem("tokenExpiry", expiryTime.toString());
-      
-      // Also set a cookie for middleware compatibility
-      document.cookie = `token=${result.token}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
-      console.log("✅ Token saved to cookie and localStorage");
-    }
 
-    if (result.user) {
-      localStorage.setItem("user", JSON.stringify(result.user));
-      console.log("✅ User data saved:", result.user);
-    }
+  // Updated LoginForm.tsx token handling part
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handleSuccessfulLogin = (result: any) => {
+  console.log("✅ Login successful! Result:", result);
 
-    toast.success(result.message || "Login successful!");
+  if (result.accessToken) {
+    // Save access token to localStorage and cookies
+    localStorage.setItem("bearerToken", result.accessToken);
     
-    // Set redirecting state and use router after a short delay
-    setIsRedirecting(true);
-    console.log("🚀 Redirecting to:", redirectTo);
-    setTimeout(() => {
-      router.push(redirectTo);
-    }, 1000);
-  };
+    // Set token expiry (1 hour from JWT)
+    const expiryTime = Date.now() + 60 * 60 * 1000;
+    localStorage.setItem("tokenExpiry", expiryTime.toString());
+
+    // Set cookies for middleware compatibility
+    document.cookie = `token=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
+    document.cookie = `sessionToken=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
+    
+    console.log("✅ Access token saved to cookies and localStorage");
+  }
+
+  if (result.user) {
+    localStorage.setItem("user", JSON.stringify(result.user));
+    console.log("✅ User data saved:", result.user);
+  }
+
+  toast.success(result.message || "Login successful!");
+
+  // Set redirecting state and use router after a short delay
+  setIsRedirecting(true);
+  console.log("🚀 Redirecting to:", redirectTo);
+  setTimeout(() => {
+    router.push(redirectTo);
+  }, 1000);
+};
+
+
+
 
   // ✅ Handle login errors
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,11 +102,14 @@ function LoginFormContent() {
 
   const onSubmit = async (data: FormData) => {
     if (isRedirecting) return; // Prevent multiple submissions during redirect
-    
-    console.log("📤 Submitting login form with data:", { ...data, password: "***" });
+
+    console.log("📤 Submitting login form with data:", {
+      ...data,
+      password: "***",
+    });
     setLoading(true);
     try {
-      const res = await fetch("https://onetime.sendexa.co/api/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,10 +120,10 @@ function LoginFormContent() {
 
       const result = await res.json();
 
-      console.log("📥 Login response:", { 
-        status: res.status, 
-        ok: res.ok, 
-        result 
+      console.log("📥 Login response:", {
+        status: res.status,
+        ok: res.ok,
+        result,
       });
 
       if (!res.ok) {
@@ -137,8 +146,8 @@ function LoginFormContent() {
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
             <Image
-              src="https://cdn.sendexa.co/images/logo/exaweb.png"
-              alt="Sendexa Logo"
+              src="/xtopay.png"
+              alt="Xtopay Logo"
               width={150}
               height={50}
             />
@@ -165,12 +174,7 @@ function LoginFormContent() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8 ">
-          <Image
-            src="https://cdn.sendexa.co/images/logo/exaweb.png"
-            alt="Sendexa Logo"
-            width={150}
-            height={50}
-          />
+          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
         </div>
 
         <div>
@@ -242,9 +246,10 @@ function LoginFormContent() {
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              // className="w-full"
+              className="w-full flex items-center justify-center bg-brand-500 hover:bg-brand-600 focus:ring-4 focus:ring-brand-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 text-white"
               disabled={loading || isRedirecting}
             >
               {loading ? (
@@ -265,26 +270,6 @@ function LoginFormContent() {
               Sign Up
             </Link>
           </div>
-
-          {/* Privacy Notice */}
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              By logging in, you agree to our{" "}
-              <Link
-                href="https://sendexa.co/legal/terms"
-                className="text-brand-500 hover:underline"
-              >
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="https://sendexa.co/legal/privacy"
-                className="text-brand-500 hover:underline"
-              >
-                Privacy Policy
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -299,12 +284,7 @@ function LoginFormFallback() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Image
-            src="https://cdn.sendexa.co/images/logo/exaweb.png"
-            alt="Sendexa Logo"
-            width={150}
-            height={50}
-          />
+          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
         </div>
 
         {/* Loading skeleton */}

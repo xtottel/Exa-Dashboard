@@ -1,4 +1,5 @@
 
+// dashboard/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -6,6 +7,9 @@ const protectedRoutes = ["/apps/home", "/home", "/settings/profile"];
 const authRoutes = ["/login", "/signup", "/forgot-password"];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const publicRoutes = ["/", "/verify-email", "/reset-password", "/resend-verification"];
+
+// API base URL for backend requests
+//const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:2806";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,8 +34,9 @@ export async function middleware(request: NextRequest) {
     isAuthRoute
   });
 
-  // ✅ Get token from cookies
-  const token = request.cookies.get("token")?.value;
+  // ✅ Get token from cookies or headers
+  const token = request.cookies.get("token")?.value || 
+                request.cookies.get("sessionToken")?.value;
   console.log("🍪 Token from cookies:", token ? "Present" : "Missing");
 
   // ✅ For protected routes, verify with backend
@@ -61,6 +66,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/home", request.url));
     } else {
       console.log("❌ Invalid token, allowing access to auth route");
+      // Clear invalid tokens
+      const response = NextResponse.next();
+      response.cookies.delete("token");
+      response.cookies.delete("sessionToken");
+      return response;
     }
   }
 
@@ -77,7 +87,7 @@ async function verifyAuth(token: string | undefined): Promise<boolean> {
 
   try {
     console.log("🔐 Verifying token with backend...");
-    const verifyRes = await fetch("https://onetime.sendexa.co/api/auth/verify", {
+    const verifyRes = await fetch(`http://localhost:4000/api/auth/verify`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -95,16 +105,17 @@ async function verifyAuth(token: string | undefined): Promise<boolean> {
     if (verifyRes.ok) {
       try {
         const userData = await verifyRes.json();
-        console.log("✅ Token valid, user details:", userData);
+        console.log("✅ Token valid, user details:", userData.user?.email);
+        return true;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         console.log("✅ Token valid (no user data in response)");
+        return true;
       }
     } else {
       console.log("❌ Token verification failed");
+      return false;
     }
-
-    return verifyRes.ok;
   } catch (error) {
     console.error("❌ Auth verification error:", error);
     return false;
