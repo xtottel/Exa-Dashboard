@@ -20,7 +20,7 @@ app.use(cors({
     if (origin === "http://localhost:3000") return callback(null, true);
     
     const hostname = new URL(origin).hostname;
-    if (/\.?xtopay\.co$/.test(hostname)) {
+    if (/\.?sendexa\.co$/.test(hostname)) {
       return callback(null, true);
     }
     
@@ -68,7 +68,7 @@ app.get('/health', (req, res) => {
 // Welcome endpoint
 app.get('/welcome', (req, res) => {
   res.json({
-    message: 'Welcome to XtoPay API Server!',
+    message: 'Welcome to Sendexa API Server!',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     endpoints: {
@@ -99,4 +99,7 @@ app.use('*', (req, res) => {
 
 app.listen(PORT, () => {
   logger.info(`🚀 Server started on http://localhost:${PORT}`);
+  logger.info(`📖 API Documentation available at http://localhost:${PORT}/api-docs`);
+  logger.info(`🔗 Health Check available at http://localhost:${PORT}/health`);
+  logger.info(`👋 Welcome endpoint available at http://localhost:${PORT}/welcome`);
 });

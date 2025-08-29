@@ -26,7 +26,7 @@ export async function sendMail({
 }) {
   const html = await render(react);
   return transporter.sendMail({
-    from: `Xtopay <${process.env.SMTP_USER}>`,
+    from: `Sendexa <${process.env.SMTP_USER}>`,
     to,
     subject,
     html,
