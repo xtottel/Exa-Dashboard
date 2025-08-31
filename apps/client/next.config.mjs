@@ -20,8 +20,8 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://onclick.sendexa.co/api/:path*",
-        // destination: "http://localhost:6000/api/:path*",
+        destination: "https://onetime.xtopay.co/api/:path*",
+       // destination: "http://localhost:2806/api/:path*",
       },
     ];
   },
@@ -34,6 +34,10 @@ const nextConfig = {
           {
             key: "Access-Control-Allow-Origin",
             value: "https://onclick.sendexa.co", 
+          },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "http://localhost:2806",
           },
           {
             key: "Access-Control-Allow-Methods",

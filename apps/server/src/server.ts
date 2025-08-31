@@ -7,7 +7,7 @@ import { logger } from '@/utils/logger';
 import 'dotenv/config';
  
 const app = express();
-const PORT = Number(process.env.PORT) || 4000;
+const PORT = Number(process.env.PORT) || 2806; // Default to 2806 if PORT not set
 
 // Middleware
 app.use(express.json());

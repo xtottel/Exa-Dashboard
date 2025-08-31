@@ -87,7 +87,7 @@ async function verifyAuth(token: string | undefined): Promise<boolean> {
 
   try {
     console.log("🔐 Verifying token with backend...");
-    const verifyRes = await fetch(`https://onclick.sendexa.co/api/auth/verify`, {
+    const verifyRes = await fetch(`http://localhost:2806/api/auth/verify`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

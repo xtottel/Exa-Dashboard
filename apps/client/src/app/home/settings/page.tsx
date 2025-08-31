@@ -1,7 +1,7 @@
 // app/settings/page.tsx
 import { Card } from "@/components/ui/card";
 //import { Button } from "@/components/ui/button";
-import { User, Key, Shield } from "lucide-react";
+import { User, Key } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -17,12 +17,6 @@ export default function SettingsPage() {
       description: "Manage your API access credentials",
       icon: <Key className="h-5 w-5" />,
       href: "/home/settings/api-keys",
-    },
-    {
-      title: "Security",
-      description: "Configure authentication and security settings",
-      icon: <Shield className="h-5 w-5" />,
-      href: "/home/settings/security",
     },
   ];
 
