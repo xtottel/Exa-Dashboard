@@ -224,7 +224,6 @@
 //             )}
 //           </div>
 
-
 //           <div className="mt-5"></div>
 
 //           <div className="flex items-start space-x-2">
@@ -287,7 +286,6 @@
 //     </div>
 //   );
 // }
-
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
@@ -395,9 +393,9 @@ export default function SignUpForm() {
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
             <Image
-              src="/sendexa-logo.png" // Updated to Sendexa logo
+              src="https://cdn.sendexa.co/images/logo/exaweb.png"
               alt="Sendexa Logo"
-              width={150}
+              width={120}
               height={50}
             />
           </div>
@@ -422,11 +420,11 @@ export default function SignUpForm() {
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto md:no-scrollbar py-8">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div className="flex justify-center mb-8">
-          <Image 
-            src="/sendexa-logo.png" // Updated to Sendexa logo
-            alt="Sendexa Logo" 
-            width={150} 
-            height={50} 
+          <Image
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
           />
         </div>
 
@@ -550,9 +548,7 @@ export default function SignUpForm() {
             </Label>
           </div>
           {errors.terms && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.terms.message}
-            </p>
+            <p className="text-sm text-red-500 mt-1">{errors.terms.message}</p>
           )}
 
           <Button

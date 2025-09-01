@@ -161,12 +161,6 @@ export default function SmsDetailPage() {
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="whitespace-pre-wrap">{sms.message}</p>
             </div>
-            {/* <div className="mt-4 flex justify-end">
-              <Button variant="outline">
-                Resend Message
-                <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div> */}
           </CardContent>
         </Card>
       </div>

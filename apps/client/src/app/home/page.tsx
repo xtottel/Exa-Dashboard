@@ -450,7 +450,7 @@ export default function DashboardHome() {
           </div>
           <div className="space-x-2">
             <Button variant="outline" size="sm">
-              <Link href={`/home/reports/sms/`}>View All</Link>
+              <Link href={`/home/reports/sms/history`}>View All</Link>
             </Button>
           </div>
         </CardFooter>

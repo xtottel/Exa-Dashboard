@@ -10,7 +10,8 @@
       "items": [
         { "title": "Send SMS", "url": "/home/sms/send" },
         { "title": "Sender IDs", "url": "/home/sms/sender-ids" },
-        { "title": "Templates", "url": "/home/sms/templates" }
+        { "title": "Templates", "url": "/home/sms/templates" },
+        { "title": "Contacts", "url": "/home/sms/contacts" }
       ]
     },
     {

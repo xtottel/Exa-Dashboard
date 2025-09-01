@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { FiCheckCircle, FiClock, FiAlertCircle, FiXCircle } from "react-icons/fi"
 import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot"
+import { CheckCircle } from "lucide-react";
 
 
 const badgeVariants = cva(
@@ -34,12 +35,18 @@ const badgeVariants = cva(
       status: {
         paid: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         success: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+        approved: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         refunded: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         pending: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800",
         failed: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
+        rejected: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
         canceled: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
         live: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         test: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800",
+         delivered:
+          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+        processed:
+          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
       },
     },
     compoundVariants: [
@@ -53,6 +60,13 @@ const badgeVariants = cva(
         status: "success",
         className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
       },
+      //approved
+      {
+        variant: "status",
+        status: "approved",
+        className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
+      },
+      //pending
       {
         variant: "status",
         status: "pending",
@@ -63,6 +77,13 @@ const badgeVariants = cva(
         status: "failed",
         className: "[&>svg]:text-red-500 dark:[&>svg]:text-red-400",
       },
+      //rejected
+      {
+        variant: "status",
+        status: "rejected",
+        className: "[&>svg]:text-red-500 dark:[&>svg]:text-red-400",
+      },
+      //canceled
       {
         variant: "status",
         status: "canceled",
@@ -83,6 +104,16 @@ const badgeVariants = cva(
         status: "test",
         className: "[&>svg]:text-yellow-500 dark:[&>svg]:text-yellow-400",
       },
+      {
+        variant: "status",
+        status: "delivered",
+        className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
+      },
+      {
+        variant: "status",
+        status: "processed",
+        className: "[&>svg]:text-green-500 dark:[&>svg]:text-green-400",
+      },
     ],
     defaultVariants: {
       variant: "default",
@@ -92,6 +123,10 @@ const badgeVariants = cva(
 
 const statusIcons = {
   paid: <FiCheckCircle size={14} />,
+  approved: <FiCheckCircle size={14} />,
+  delivered: <CheckCircle size={14} />,
+  processed: <CheckCircle size={14} />,
+  rejected: <FiXCircle size={14} />,
   pending: <FiClock size={14} />,
   failed: <FiAlertCircle size={14} />,
   canceled: <FiXCircle size={14} />,

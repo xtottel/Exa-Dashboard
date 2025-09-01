@@ -17,6 +17,8 @@ export const login = async (req: Request, res: Response) => {
     const { email, password, deviceInfo } = req.body;
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
+    //location can be fetched from a geoip service if needed
+    //const location = req.get("") || 'unknown';
 
     // Validate input
     if (!email || !password) {

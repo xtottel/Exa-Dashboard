@@ -46,44 +46,40 @@ function LoginFormContent() {
     },
   });
 
-
   // Updated LoginForm.tsx token handling part
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleSuccessfulLogin = (result: any) => {
-  console.log("✅ Login successful! Result:", result);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSuccessfulLogin = (result: any) => {
+    console.log("✅ Login successful! Result:", result);
 
-  if (result.accessToken) {
-    // Save access token to localStorage and cookies
-    localStorage.setItem("bearerToken", result.accessToken);
-    
-    // Set token expiry (1 hour from JWT)
-    const expiryTime = Date.now() + 60 * 60 * 1000;
-    localStorage.setItem("tokenExpiry", expiryTime.toString());
+    if (result.accessToken) {
+      // Save access token to localStorage and cookies
+      localStorage.setItem("bearerToken", result.accessToken);
 
-    // Set cookies for middleware compatibility
-    document.cookie = `token=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
-    document.cookie = `sessionToken=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
-    
-    console.log("✅ Access token saved to cookies and localStorage");
-  }
+      // Set token expiry (1 hour from JWT)
+      const expiryTime = Date.now() + 60 * 60 * 1000;
+      localStorage.setItem("tokenExpiry", expiryTime.toString());
 
-  if (result.user) {
-    localStorage.setItem("user", JSON.stringify(result.user));
-    console.log("✅ User data saved:", result.user);
-  }
+      // Set cookies for middleware compatibility
+      document.cookie = `token=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
+      document.cookie = `sessionToken=${result.accessToken}; path=/; max-age=${60 * 60}; secure=${process.env.NODE_ENV === "production"}; sameSite=lax`;
 
-  toast.success(result.message || "Login successful!");
+      console.log("✅ Access token saved to cookies and localStorage");
+    }
 
-  // Set redirecting state and use router after a short delay
-  setIsRedirecting(true);
-  console.log("🚀 Redirecting to:", redirectTo);
-  setTimeout(() => {
-    router.push(redirectTo);
-  }, 1000);
-};
+    if (result.user) {
+      localStorage.setItem("user", JSON.stringify(result.user));
+      console.log("✅ User data saved:", result.user);
+    }
 
+    toast.success(result.message || "Login successful!");
 
-
+    // Set redirecting state and use router after a short delay
+    setIsRedirecting(true);
+    console.log("🚀 Redirecting to:", redirectTo);
+    setTimeout(() => {
+      router.push(redirectTo);
+    }, 1000);
+  };
 
   // ✅ Handle login errors
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,12 +141,12 @@ const handleSuccessfulLogin = (result: any) => {
       <div className="flex flex-col flex-1 lg:w-1/2 w-full">
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
-            <Image
-              src="/xtopay.png"
-              alt="Xtopay Logo"
-              width={150}
-              height={50}
-            />
+              <Image
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
+          />
           </div>
           <div className="text-center">
             <div className="mb-4">
@@ -174,7 +170,12 @@ const handleSuccessfulLogin = (result: any) => {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8 ">
-          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
+          <Image
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
+          />
         </div>
 
         <div>

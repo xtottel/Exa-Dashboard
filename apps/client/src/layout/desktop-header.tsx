@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,6 +19,7 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  Clapperboard,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -82,6 +82,16 @@ export function DesktopHeader() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-6">
+        {/* get started button */}
+        <Button
+          variant="outline"
+          className="text-sm font-medium flex items-center gap-2 bg-red-500/10 text-red-600 hover:bg-red-500/20 hover:text-red-700 focus:bg-red-500/20 focus:text-red-700"
+          onClick={() => router.push("/home/get-started")}
+         // onClick={() => router.push("/home/sms/send")}
+        >
+          <Clapperboard className="h-4 w-4" />
+          Watch Video
+        </Button>
         {/* Quick Create Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

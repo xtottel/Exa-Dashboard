@@ -31,7 +31,7 @@ type SenderId = {
   id: string;
   status: "approved" | "pending" | "rejected";
   name: string;
-  atWhitelisted: "Submitted" | "Not Submitted";
+  atWhitelisted: "Submitted" | "Not Submitted"; 
   createdAt: string;
 };
 

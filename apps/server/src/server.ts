@@ -1,13 +1,15 @@
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { authRoutes } from '@/routes/auth';
 import { userRoutes } from '@/routes/user';
+import { apiRoutes } from '@/routes'; // Import the main API routes
 import { logger } from '@/utils/logger';
 import 'dotenv/config';
- 
+
 const app = express();
-const PORT = Number(process.env.PORT) || 2806; // Default to 2806 if PORT not set
+const PORT = Number(process.env.PORT) || 2806;
 
 // Middleware
 app.use(express.json());
@@ -35,7 +37,6 @@ app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
   const now = Date.now();
   
-  // Simple in-memory rate limiting (in production, use Redis)
   if (!req.app.locals.rateLimits) {
     req.app.locals.rateLimits = new Map();
   }
@@ -56,9 +57,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes - temporarily commented out
+// Routes
 app.use('/api/auth', authRoutes);
- app.use('/api/user', userRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api', apiRoutes); // Use the main API routes
 
 // Health check
 app.get('/health', (req, res) => {
@@ -73,9 +75,9 @@ app.get('/welcome', (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       health: '/health',
-      auth: '/auth',
-      welcome: '/welcome',
-      docs: '/api-docs' // You might want to add API documentation later
+      auth: '/api/auth',
+      api: '/api',
+      welcome: '/welcome'
     },
     status: 'operational'
   });
