@@ -5,7 +5,6 @@ import { smsRoutes } from './sms';
 import { otpRoutes } from './otp';
 import { contactsRoutes } from './contacts';
 import { templatesRoutes } from './templates';
-//import { senderIdRoutes } from './senderId';
 import { senderIdRoutes } from './sender-id';
 import { creditsRoutes } from './credits';
 import { reportsRoutes } from './reports';

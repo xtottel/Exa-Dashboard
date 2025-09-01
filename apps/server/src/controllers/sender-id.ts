@@ -24,7 +24,8 @@ export const createSenderId = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (!/^[a-zA-Z0-9]+$/.test(name)) {
+    // if (!/^[a-zA-Z0-9]+$/.test(name)) {
+      if (!/^[a-zA-Z\s]+$/.test(name)) {
       return res.status(400).json({
         success: false,
         message: 'Sender ID must be alphanumeric with no spaces or special characters'

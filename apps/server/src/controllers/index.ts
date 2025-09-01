@@ -4,7 +4,7 @@ export * from './sms';
 export * from './otp';
 export * from './contacts';
 export * from './templates';
-export * from './senderId';
+export * from './sender-id';
 export * from './credits';
 export * from './reports';
 export * from './settings';

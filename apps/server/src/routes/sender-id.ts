@@ -5,7 +5,7 @@ import {
   getSenderIds,
   updateSenderId,
   deleteSenderId
-} from '@/controllers/senderId';
+} from '@/controllers/sender-id';
 
 const router = Router();
 

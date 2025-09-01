@@ -70,7 +70,7 @@ export default function SenderIdPage() {
   const fetchSenderIds = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/sender-id");
+      const response = await fetch("/api/sender-ids");
 
       if (!response.ok) {
         throw new Error("Failed to fetch sender IDs");
@@ -142,7 +142,7 @@ export default function SenderIdPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/sender-id", {
+      const response = await fetch("/api/sender-ids", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
