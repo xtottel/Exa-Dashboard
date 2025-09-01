@@ -21,10 +21,10 @@ const generateBusinessId = async (): Promise<string> => {
   // Get the count of existing businesses to determine the next number
   const businessCount = await prisma.business.count();
   const nextNumber = businessCount + 1;
-  
+
   // Format the number to be 4 digits with leading zeros
   const numberPart = nextNumber.toString().padStart(4, '0');
-  
+
   return `080${numberPart}`;
 };
 
@@ -33,10 +33,10 @@ const generateUserId = async (): Promise<string> => {
   // Get the count of existing users to determine the next number
   const userCount = await prisma.user.count();
   const nextNumber = userCount + 1;
-  
+
   // Format the number to be 4 digits with leading zeros
   const numberPart = nextNumber.toString().padStart(4, '0');
-  
+
   return `EXA-280${numberPart}`;
 };
 
@@ -118,7 +118,7 @@ export const signup = async (req: Request, res: Response) => {
           data: {
             businessId: business.id,
             securityLevel: 'STANDARD',
-            mfaRequired: false, 
+            mfaRequired: false,
             sessionTimeout: 1440,
             maxLoginAttempts: 5
           }
@@ -173,11 +173,20 @@ export const signup = async (req: Request, res: Response) => {
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+        // await tx.verificationToken.create({
+        //   data: {
+        //     token: verificationToken,
+        //     expiresAt: verificationExpiry,
+        //     userId: user.id
+        //   }
+        // });
+
         await tx.verificationToken.create({
           data: {
             token: verificationToken,
-            expiresAt: verificationExpiry,
-            userId: user.id
+            expires: verificationExpiry, // Note: field is called 'expires' not 'expiresAt'
+            userId: user.id,
+            identifier: email // Add the required identifier field
           }
         });
 
@@ -191,7 +200,7 @@ export const signup = async (req: Request, res: Response) => {
     // Send verification email
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${result.verificationToken}`;
     const name = `${firstName} ${lastName}`;
-    
+
     await sendMail({
       to: email,
       subject: 'Verify your email',

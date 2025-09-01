@@ -35,10 +35,10 @@ const nextConfig = {
             key: "Access-Control-Allow-Origin",
             value: "https://onclick.sendexa.co", 
           },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "http://localhost:2806",
-          },
+          // {
+          //   key: "Access-Control-Allow-Origin",
+          //   value: "http://localhost:2806",
+          // },
           {
             key: "Access-Control-Allow-Methods",
             value: "GET, POST, PUT, DELETE, OPTIONS",
