@@ -1,4 +1,3 @@
-
 "use client";
 import {
   Card,
@@ -71,18 +70,7 @@ export default function SenderIdPage() {
   const fetchSenderIds = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("bearerToken");
-      
-      if (!token) {
-        toast.error("Please login again");
-        return;
-      }
-
-      const response = await fetch("/api/sender-id", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch("/api/sender-id");
 
       if (!response.ok) {
         throw new Error("Failed to fetch sender IDs");
@@ -102,23 +90,15 @@ export default function SenderIdPage() {
     fetchSenderIds();
   }, []);
 
-  const formatSenderId = (input: string): string => {
-    // Remove any characters that are not letters, numbers, or spaces
-    const cleaned = input.replace(/[^a-zA-Z0-9\s]/g, "");
-    
-    // Convert to uppercase and trim whitespace
-    return cleaned.toUpperCase().trim();
-  };
-
   const validateSenderId = (senderId: string): { isValid: boolean; message?: string } => {
-    const formatted = formatSenderId(senderId);
+    const trimmed = senderId.trim();
     
-    if (!formatted) {
+    if (!trimmed) {
       return { isValid: false, message: "Sender ID cannot be empty" };
     }
 
-    // Count characters (spaces count as characters)
-    const charCount = formatted.length;
+    // Count characters
+    const charCount = trimmed.length;
     
     if (charCount < 3) {
       return { isValid: false, message: "Sender ID must be at least 3 characters" };
@@ -128,18 +108,24 @@ export default function SenderIdPage() {
       return { isValid: false, message: "Sender ID cannot exceed 11 characters" };
     }
 
-    // Check if it contains at least one letter or number (after removing spaces)
-    const hasValidChars = /[a-zA-Z0-9]/.test(formatted.replace(/\s/g, ""));
-    if (!hasValidChars) {
-      return { isValid: false, message: "Sender ID must contain letters or numbers" };
+    // Check if it contains only letters and spaces (no numbers)
+    const isValidFormat = /^[a-zA-Z\s]+$/.test(trimmed);
+    if (!isValidFormat) {
+      return { isValid: false, message: "Sender ID must contain only letters and spaces (no numbers or special characters)" };
+    }
+
+    // Check if it contains at least one letter
+    const hasLetters = /[a-zA-Z]/.test(trimmed);
+    if (!hasLetters) {
+      return { isValid: false, message: "Sender ID must contain at least one letter" };
     }
 
     return { isValid: true };
   };
 
   const handleAddSenderId = async () => {
-    const formattedSenderId = formatSenderId(newSenderId);
-    const validation = validateSenderId(formattedSenderId);
+    const trimmedSenderId = newSenderId.trim();
+    const validation = validateSenderId(trimmedSenderId);
     
     if (!validation.isValid) {
       toast.error(validation.message);
@@ -148,7 +134,7 @@ export default function SenderIdPage() {
 
     // Check if sender ID already exists (case insensitive)
     if (senderIds.some((sid) => 
-      sid.name.toUpperCase() === formattedSenderId.toUpperCase()
+      sid.name.toLowerCase() === trimmedSenderId.toLowerCase()
     )) {
       toast.error("This Sender ID is already registered");
       return;
@@ -156,21 +142,13 @@ export default function SenderIdPage() {
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem("bearerToken");
-      
-      if (!token) {
-        toast.error("Please login again");
-        return;
-      }
-
       const response = await fetch("/api/sender-id", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: formattedSenderId,
+          name: trimmedSenderId,
         }),
       });
 
@@ -197,8 +175,8 @@ export default function SenderIdPage() {
   };
 
   const handleInputChange = (value: string) => {
-    // Allow letters, numbers, and spaces
-    const cleaned = value.replace(/[^a-zA-Z0-9\s]/g, "");
+    // Allow only letters and spaces
+    const cleaned = value.replace(/[^a-zA-Z\s]/g, "");
     setNewSenderId(cleaned);
   };
 
@@ -250,8 +228,7 @@ export default function SenderIdPage() {
           <DialogHeader>
             <DialogTitle>Register New Sender ID</DialogTitle>
             <DialogDescription>
-              Sender IDs must be 3-11 characters, alphanumeric with spaces allowed.
-              Spaces count towards the character limit.
+              Sender IDs must be 3-11 characters, letters and spaces only (no numbers or special characters).
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-2">
@@ -262,11 +239,11 @@ export default function SenderIdPage() {
               maxLength={11}
             />
             <p className="text-xs text-muted-foreground">
-              {newSenderId.length}/11 characters • {formatSenderId(newSenderId).length} characters when formatted
+              {newSenderId.length}/11 characters
             </p>
-            {newSenderId && (
+            {newSenderId.trim() && (
               <p className="text-xs text-muted-foreground">
-                Will be saved as: <strong>{formatSenderId(newSenderId)}</strong>
+                Will be saved as: <strong>{newSenderId.trim()}</strong>
               </p>
             )}
           </div>
@@ -283,7 +260,7 @@ export default function SenderIdPage() {
             </Button>
             <Button 
               onClick={handleAddSenderId}
-              disabled={isSubmitting || !formatSenderId(newSenderId)}
+              disabled={isSubmitting || !newSenderId.trim()}
             >
               {isSubmitting ? (
                 <>
