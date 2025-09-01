@@ -1,9 +1,11 @@
+
+
 // app/contacts/view/[id]/page.tsx
 "use client";
 
 import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -48,68 +50,28 @@ import {
   Trash2,
   Download,
   Calendar,
+  Loader2,
 } from "lucide-react";
 
 type Contact = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
-  dob?: string;
-  address?: string;
+  dateOfBirth: string | null;
+  address: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type ContactGroup = {
   id: string;
   name: string;
+  description: string | null;
   recipients: number;
-  date: string;
-  description?: string;
-  contacts: Contact[];
+  createdAt: string;
+  updatedAt: string;
 };
-
-// Mock data - in a real app you would fetch this from your API
-const mockContactGroups: ContactGroup[] = [
-  {
-    id: "1",
-    name: "Customers",
-    recipients: 2500,
-    date: "2023-06-10",
-    description: "All customer contacts from 2023",
-    contacts: [
-      {
-        id: "101",
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "0244123456",
-        dob: "1985-05-15",
-      },
-      {
-        id: "102",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        phone: "0209876543",
-        dob: "1990-11-22",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "VIP Clients",
-    recipients: 150,
-    date: "2023-06-15",
-    description: "High-value clients with premium status",
-    contacts: [
-      {
-        id: "201",
-        name: "Alice Johnson",
-        email: "alice@example.com",
-        phone: "0543210987",
-        dob: "1978-03-10",
-      },
-    ],
-  },
-];
 
 export default function ContactGroupViewPage() {
   const params = useParams<{ id: string }>();
@@ -117,116 +79,198 @@ export default function ContactGroupViewPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentContact, setCurrentContact] = useState<Contact | null>(null);
-  const [groups, setGroups] = useState(mockContactGroups);
+  const [group, setGroup] = useState<ContactGroup | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [contactsLoading, setContactsLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  });
+  const [search, setSearch] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  // Find the group in our mock data
-  const group = groups.find((group) => group.id === params.id);
-
-  if (!group) {
-    return notFound();
-  }
-
-  // Form state for new/edited contact
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [contactForm, setContactForm] = useState<Omit<Contact, "id">>({
+  const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
     phone: "",
-    dob: "",
-    // address: ''
+    dateOfBirth: "",
+    address: ""
   });
 
-  const handleAddContact = () => {
-    if (!contactForm.name || !contactForm.email || !contactForm.phone) {
-      toast.error("Please fill in all required fields");
+  const fetchGroup = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/contacts/groups/${params.id}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setGroup(data.data);
+      } else {
+        toast.error(data.message || "Failed to fetch contact group");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch contact group");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchContacts = async (page = 1, searchTerm = "") => {
+    try {
+      setContactsLoading(true);
+      const searchParams = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...(searchTerm && { search: searchTerm })
+      });
+
+      const response = await fetch(`/api/contacts/groups/${params.id}/contacts?${searchParams}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setContacts(data.data);
+        setPagination(data.pagination);
+      } else {
+        toast.error(data.message || "Failed to fetch contacts");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch contacts");
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (params.id) {
+      fetchGroup();
+      fetchContacts();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
+
+  const handleAddContact = async () => {
+    if (!contactForm.name || !contactForm.phone) {
+      toast.error("Name and phone are required");
       return;
     }
 
-    const newContact: Contact = {
-      id: Date.now().toString(),
-      ...contactForm,
-    };
+    try {
+      setSubmitting(true);
+      const response = await fetch(`/api/contacts/groups/${params.id}/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contactForm),
+      });
 
-    const updatedGroups = groups.map((g) => {
-      if (g.id === group.id) {
-        return {
-          ...g,
-          contacts: [...g.contacts, newContact],
-          recipients: g.contacts.length + 1,
-        };
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Contact added successfully");
+        setIsAddModalOpen(false);
+        setContactForm({
+          name: "",
+          email: "",
+          phone: "",
+          dateOfBirth: "",
+          address: ""
+        });
+        fetchContacts(); // Refresh contacts
+        fetchGroup(); // Refresh group to update recipient count
+      } else {
+        toast.error(data.message || "Failed to add contact");
       }
-      return g;
-    });
-
-    setGroups(updatedGroups);
-    setIsAddModalOpen(false);
-    setContactForm({
-      name: "",
-      email: "",
-      phone: "",
-      dob: "",
-      //   address: ''
-    });
-    toast.success("Contact added successfully");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to add contact");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleEditContact = () => {
-    if (
-      !currentContact ||
-      !contactForm.name ||
-      !contactForm.email ||
-      !contactForm.phone
-    ) {
-      toast.error("Please fill in all required fields");
+  const handleEditContact = async () => {
+    if (!currentContact || !contactForm.name || !contactForm.phone) {
+      toast.error("Name and phone are required");
       return;
     }
 
-    const updatedGroups = groups.map((g) => {
-      if (g.id === group.id) {
-        return {
-          ...g,
-          contacts: g.contacts.map((c) =>
-            c.id === currentContact.id ? { ...c, ...contactForm } : c
-          ),
-        };
-      }
-      return g;
-    });
+    try {
+      setSubmitting(true);
+      const response = await fetch(
+        `/api/contacts/groups/${params.id}/contacts/${currentContact.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(contactForm),
+        }
+      );
 
-    setGroups(updatedGroups);
-    setIsEditModalOpen(false);
-    setCurrentContact(null);
-    toast.success("Contact updated successfully");
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Contact updated successfully");
+        setIsEditModalOpen(false);
+        setCurrentContact(null);
+        fetchContacts(); // Refresh contacts
+      } else {
+        toast.error(data.message || "Failed to update contact");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to update contact");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteContact = () => {
+  const handleDeleteContact = async () => {
     if (!currentContact) return;
 
-    const updatedGroups = groups.map((g) => {
-      if (g.id === group.id) {
-        return {
-          ...g,
-          contacts: g.contacts.filter((c) => c.id !== currentContact.id),
-          recipients: Math.max(0, g.contacts.length - 1),
-        };
-      }
-      return g;
-    });
+    try {
+      setDeleting(true);
+      const response = await fetch(
+        `/api/contacts/groups/${params.id}/contacts/${currentContact.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-    setGroups(updatedGroups);
-    setIsDeleteModalOpen(false);
-    setCurrentContact(null);
-    toast.success("Contact deleted successfully");
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Contact deleted successfully");
+        setIsDeleteModalOpen(false);
+        setCurrentContact(null);
+        fetchContacts(); // Refresh contacts
+        fetchGroup(); // Refresh group to update recipient count
+      } else {
+        toast.error(data.message || "Failed to delete contact");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to delete contact");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const openEditModal = (contact: Contact) => {
     setCurrentContact(contact);
     setContactForm({
       name: contact.name,
-      email: contact.email,
+      email: contact.email || "",
       phone: contact.phone,
-      dob: contact.dob || "",
-      //   address: contact.address || ''
+      dateOfBirth: contact.dateOfBirth || "",
+      address: contact.address || ""
     });
     setIsEditModalOpen(true);
   };
@@ -235,6 +279,34 @@ export default function ContactGroupViewPage() {
     setCurrentContact(contact);
     setIsDeleteModalOpen(true);
   };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // Debounce the search
+    setTimeout(() => {
+      fetchContacts(1, e.target.value);
+    }, 300);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    fetchContacts(newPage, search);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!group) {
+    return notFound();
+  }
 
   return (
     <div className="space-y-6">
@@ -260,10 +332,10 @@ export default function ContactGroupViewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {group.contacts.length.toLocaleString()}
+              {group.recipients.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Created on {group.date}
+              Created on {formatDate(group.createdAt)}
             </p>
           </CardContent>
         </Card>
@@ -274,8 +346,8 @@ export default function ContactGroupViewPage() {
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Today</div>
-            <p className="text-xs text-muted-foreground">2 changes this week</p>
+            <div className="text-2xl font-bold">{formatDate(group.updatedAt)}</div>
+            <p className="text-xs text-muted-foreground">Last modification</p>
           </CardContent>
         </Card>
 
@@ -298,9 +370,17 @@ export default function ContactGroupViewPage() {
           </CardContent>
         </Card>
       </div>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Contact List</h1>
+
+      <div className="flex items-center gap-4">
+        <h2 className="text-2xl font-bold tracking-tight">Contact List</h2>
+        <Input
+          placeholder="Search contacts..."
+          value={search}
+          onChange={handleSearch}
+          className="max-w-sm"
+        />
       </div>
+
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -310,49 +390,83 @@ export default function ContactGroupViewPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Date of Birth</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {group.contacts.map((contact) => (
-                <TableRow key={contact.id}>
-                  <TableCell className="font-medium">{contact.name}</TableCell>
-                  <TableCell>{contact.email}</TableCell>
-                  <TableCell>{contact.phone}</TableCell>
-                  <TableCell>{contact.dob || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openEditModal(contact)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => openDeleteModal(contact)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {contactsLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : contacts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No contacts found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                contacts.map((contact) => (
+                  <TableRow key={contact.id}>
+                    <TableCell className="font-medium">{contact.name}</TableCell>
+                    <TableCell>{contact.email || "-"}</TableCell>
+                    <TableCell>{contact.phone}</TableCell>
+                    <TableCell>{contact.dateOfBirth || "-"}</TableCell>
+                    <TableCell>{contact.address || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => openEditModal(contact)}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => openDeleteModal(contact)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="border-t px-6 py-4">
+        <CardFooter className="flex items-center justify-between border-t px-6 py-4">
           <div className="text-sm text-muted-foreground">
-            Showing <strong>1-{group.contacts.length}</strong> of{" "}
-            <strong>{group.contacts.length}</strong> contacts
+            Showing <strong>{(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{" "}
+            <strong>{pagination.total}</strong> contacts
+          </div>
+          <div className="space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1}
+            >
+              Previous
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= pagination.pages}
+            >
+              Next
+            </Button>
           </div>
         </CardFooter>
       </Card>
@@ -369,7 +483,7 @@ export default function ContactGroupViewPage() {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Input
-                placeholder="Full Name"
+                placeholder="Full Name *"
                 value={contactForm.name}
                 onChange={(e) =>
                   setContactForm({ ...contactForm, name: e.target.value })
@@ -388,7 +502,7 @@ export default function ContactGroupViewPage() {
             </div>
             <div className="space-y-2">
               <Input
-                placeholder="Phone Number"
+                placeholder="Phone Number *"
                 value={contactForm.phone}
                 onChange={(e) =>
                   setContactForm({ ...contactForm, phone: e.target.value })
@@ -399,28 +513,31 @@ export default function ContactGroupViewPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Date of Birth (YYYY-MM-DD)"
+                  placeholder="Date of Birth"
                   type="date"
-                  value={contactForm.dob}
+                  value={contactForm.dateOfBirth}
                   onChange={(e) =>
-                    setContactForm({ ...contactForm, dob: e.target.value })
+                    setContactForm({ ...contactForm, dateOfBirth: e.target.value })
                   }
                 />
               </div>
             </div>
-            {/* <div className="space-y-2">
+            <div className="space-y-2">
               <Input
-                placeholder="Address (Optional)"
+                placeholder="Address"
                 value={contactForm.address}
                 onChange={(e) => setContactForm({...contactForm, address: e.target.value})}
               />
-            </div> */}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddContact}>Add Contact</Button>
+            <Button onClick={handleAddContact} disabled={submitting}>
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Add Contact
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -435,7 +552,7 @@ export default function ContactGroupViewPage() {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Input
-                placeholder="Full Name"
+                placeholder="Full Name *"
                 value={contactForm.name}
                 onChange={(e) =>
                   setContactForm({ ...contactForm, name: e.target.value })
@@ -454,7 +571,7 @@ export default function ContactGroupViewPage() {
             </div>
             <div className="space-y-2">
               <Input
-                placeholder="Phone Number"
+                placeholder="Phone Number *"
                 value={contactForm.phone}
                 onChange={(e) =>
                   setContactForm({ ...contactForm, phone: e.target.value })
@@ -465,28 +582,31 @@ export default function ContactGroupViewPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Date of Birth (YYYY-MM-DD)"
+                  placeholder="Date of Birth"
                   type="date"
-                  value={contactForm.dob}
+                  value={contactForm.dateOfBirth}
                   onChange={(e) =>
-                    setContactForm({ ...contactForm, dob: e.target.value })
+                    setContactForm({ ...contactForm, dateOfBirth: e.target.value })
                   }
                 />
               </div>
             </div>
-            {/* <div className="space-y-2">
+            <div className="space-y-2">
               <Input
-                placeholder="Address (Optional)"
+                placeholder="Address"
                 value={contactForm.address}
                 onChange={(e) => setContactForm({...contactForm, address: e.target.value})}
               />
-            </div> */}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditContact}>Save Changes</Button>
+            <Button onClick={handleEditContact} disabled={submitting}>
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -508,7 +628,8 @@ export default function ContactGroupViewPage() {
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteContact}>
+            <Button variant="destructive" onClick={handleDeleteContact} disabled={deleting}>
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete Contact
             </Button>
           </DialogFooter>
