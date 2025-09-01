@@ -36,14 +36,11 @@ export default function ForgotPasswordForm() {
   const onSubmit = async (data: ForgotPasswordData) => {
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://onetime.sendexa.co/api/auth/forgot-password",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
       const result = await res.json();
       if (!res.ok) {
@@ -65,11 +62,11 @@ export default function ForgotPasswordForm() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-4">
         <div className="flex justify-center mb-8">
           <Image
-                   src="https://cdn.sendexa.co/images/logo/exaweb.png"
-                   alt="Sendexa Logo"
-                   width={120}
-                   height={50}
-                 />
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
+          />
         </div>
 
         {emailSent ? (

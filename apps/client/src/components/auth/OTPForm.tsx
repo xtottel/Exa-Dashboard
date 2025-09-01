@@ -82,16 +82,13 @@ function OTPFormContent() {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://onetime.sendexa.co/api/auth/resend-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const res = await fetch("/api/auth/resend-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
       const result = await res.json();
 
@@ -126,16 +123,13 @@ function OTPFormContent() {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://onetime.sendexa.co/api/auth/verify-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, otp: otpValue }),
-        }
-      );
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp: otpValue }),
+      });
 
       const result = await res.json();
 
@@ -182,9 +176,9 @@ function OTPFormContent() {
         <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <div className="flex justify-center mb-8">
             <Image
-              src="/xtopay.png"
-              alt="Xtopay Logo"
-              width={150}
+              src="https://cdn.sendexa.co/images/logo/exaweb.png"
+              alt="Sendexa Logo"
+              width={120}
               height={50}
             />
           </div>
@@ -210,7 +204,12 @@ function OTPFormContent() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
+          <Image
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
+          />
         </div>
 
         <div className="mb-8 text-center">
@@ -297,7 +296,12 @@ function OTPFormFallback() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
         <div className="flex justify-center mb-8">
-          <Image src="/xtopay.png" alt="Xtopay Logo" width={150} height={50} />
+          <Image
+            src="https://cdn.sendexa.co/images/logo/exaweb.png"
+            alt="Sendexa Logo"
+            width={120}
+            height={50}
+          />
         </div>
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded mb-4"></div>
