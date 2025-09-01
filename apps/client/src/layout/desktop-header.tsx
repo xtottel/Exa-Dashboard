@@ -163,7 +163,7 @@ export function DesktopHeader() {
 
   if (isLoading) {
     return (
-      <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex">
+      <header className="sticky top-0 z-40 hidden h-16 w-full items-center justify-between border-b bg-slate-200 px-6 backdrop-blur supports-[backdrop-filter]:bg-slate-200/60 md:flex">
         {/* Business name skeleton */}
         <Skeleton className="h-6 w-48" />
         
