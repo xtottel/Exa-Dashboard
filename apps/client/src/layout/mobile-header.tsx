@@ -168,13 +168,14 @@ export function MobileHeader() {
         <div className="flex items-center gap-2">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Image
-            src="/xtopay.png"
-            alt="Xtopay Logo"
-            width={100}
-            height={40}
-            className="h-7 w-auto object-contain"
-          />
+         
+           <Image
+          src="https://cdn.sendexa.co/images/logo/exaweb.png"
+          alt="Sendexa Logo"
+          width={100}
+          height={40}
+          className="h-7 w-auto object-contain"
+        />
         </div>
 
         {/* Right: Loading state */}
