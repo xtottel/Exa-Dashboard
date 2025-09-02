@@ -126,7 +126,7 @@ export const signup = async (req: Request, res: Response) => {
 
         // Get or create default admin role
         let defaultRole = await tx.role.findFirst({
-          where: { name: "Admin" },
+          where: { name: "owner" },
         });
 
         if (!defaultRole) {
