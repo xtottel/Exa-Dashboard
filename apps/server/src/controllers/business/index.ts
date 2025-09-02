@@ -7,6 +7,8 @@ import { updateTeamMember } from "./updateTeamMember.controller";
 import { removeTeamMember } from "./removeTeamMember.controller";
 import { cancelInvitation } from "./cancelInvitation.controller";
 import { resendInvitation } from "./resendInvitation.controller";
+// Note: acceptInvitation is not included here as it's typically used without authentication
+import { acceptInvitation } from "./acceptInvitation.controller";
 
 export const businessController = {
   getBusinessProfile,
@@ -16,5 +18,6 @@ export const businessController = {
   updateTeamMember,
   removeTeamMember,
   cancelInvitation,
-  resendInvitation
+  resendInvitation,
+  acceptInvitation,
 };

@@ -1,6 +1,6 @@
 // controllers/business/getTeamMembers.controller.ts
 import { Response } from 'express';
-import { PrismaClient, Role } from '@prisma/client';
+import { Invitation, PrismaClient, Role, User } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
 
 const prisma = new PrismaClient();
@@ -22,7 +22,7 @@ interface TeamMemberResponse {
 interface InvitationResponse {
   id: string;
   email: string;
-  role: string;
+  role: Role; // Changed from string to Role
   invitedBy: {
     firstName: string;
     lastName: string;
@@ -62,7 +62,7 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    // Get pending invitations
+    // Get pending invitations with role included
     const invitations = await prisma.invitation.findMany({
       where: {
         businessId: businessId,
@@ -74,7 +74,8 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
             firstName: true,
             lastName: true
           }
-        }
+        },
+        role: true // Include the role relation
       }
     });
 
@@ -93,10 +94,13 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
     }));
 
     // Map invitations with explicit typing
-    const mappedInvitations: InvitationResponse[] = invitations.map((invitation: Invitation & { invitedBy: { firstName: string; lastName: string } }) => ({
+    const mappedInvitations: InvitationResponse[] = invitations.map((invitation: Invitation & { 
+      invitedBy: { firstName: string; lastName: string };
+      role: Role; // Add role to the type
+    }) => ({
       id: invitation.id,
       email: invitation.email,
-      role: invitation.role,
+      role: invitation.role, // Use the role object instead of roleId
       invitedBy: invitation.invitedBy,
       status: invitation.status,
       expiresAt: invitation.expiresAt,

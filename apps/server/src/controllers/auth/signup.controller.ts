@@ -1,12 +1,11 @@
-
 // controllers/auth/signup.controller.ts
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
 import { sendMail } from "@/utils/mailer";
 import { VerificationEmail } from "@/emails/VerificationEmail";
-import crypto from 'crypto';
-import { validatePasswordStrength } from '@/utils/security';
+import crypto from "crypto";
+import { validatePasswordStrength } from "@/utils/security";
 
 // Configure Prisma with increased timeout
 const prisma = new PrismaClient({
@@ -23,7 +22,7 @@ const generateBusinessId = async (): Promise<string> => {
   const nextNumber = businessCount + 1;
 
   // Format the number to be 4 digits with leading zeros
-  const numberPart = nextNumber.toString().padStart(4, '0');
+  const numberPart = nextNumber.toString().padStart(4, "0");
 
   return `080${numberPart}`;
 };
@@ -35,27 +34,28 @@ const generateUserId = async (): Promise<string> => {
   const nextNumber = userCount + 1;
 
   // Format the number to be 4 digits with leading zeros
-  const numberPart = nextNumber.toString().padStart(4, '0');
+  const numberPart = nextNumber.toString().padStart(4, "0");
 
   return `EXA-280${numberPart}`;
 };
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const {
-      businessName,
-      firstName,
-      lastName,
-      email,
-      phone,
-      password
-    } = req.body;
+    const { businessName, firstName, lastName, email, phone, password } =
+      req.body;
 
     // Validate required fields
-    if (!businessName || !firstName || !lastName || !email || !phone || !password) {
+    if (
+      !businessName ||
+      !firstName ||
+      !lastName ||
+      !email ||
+      !phone ||
+      !password
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required'
+        message: "All fields are required",
       });
     }
 
@@ -64,31 +64,31 @@ export const signup = async (req: Request, res: Response) => {
     if (!passwordValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: passwordValidation.message
+        message: passwordValidation.message,
       });
     }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'User already exists with this email'
+        message: "User already exists with this email",
       });
     }
 
     // Check if business name is taken
     const existingBusiness = await prisma.business.findUnique({
-      where: { name: businessName }
+      where: { name: businessName },
     });
 
     if (existingBusiness) {
       return res.status(409).json({
         success: false,
-        message: 'Business name is already taken'
+        message: "Business name is already taken",
       });
     }
 
@@ -109,34 +109,34 @@ export const signup = async (req: Request, res: Response) => {
             id: businessId, // Set the custom business ID
             name: businessName,
             phone,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         // Create default business settings
         await tx.businessSettings.create({
           data: {
             businessId: business.id,
-            securityLevel: 'STANDARD',
+            securityLevel: "STANDARD",
             mfaRequired: false,
             sessionTimeout: 1440,
-            maxLoginAttempts: 5
-          }
+            maxLoginAttempts: 5,
+          },
         });
 
         // Get or create default admin role
         let defaultRole = await tx.role.findFirst({
-          where: { name: 'Admin' }
+          where: { name: "Admin" },
         });
 
         if (!defaultRole) {
           // Create the Admin role if it doesn't exist
           defaultRole = await tx.role.create({
             data: {
-              name: 'Admin',
-              description: 'Administrator with full access rights',
-              permissions: ['*'] // Grant all permissions
-            }
+              name: "owner",
+              description: "Business owner with full permissions",
+              permissions: ["*"],
+            },
           });
         }
 
@@ -151,50 +151,42 @@ export const signup = async (req: Request, res: Response) => {
             password: hashedPassword,
             businessId: business.id,
             roleId: defaultRole.id,
-            isActive: true
+            isActive: true,
           },
           include: {
             business: true,
-            role: true
-          }
+            role: true,
+          },
         });
 
         // Create MFA settings for user
         await tx.mFASettings.create({
           data: {
             userId: user.id,
-            method: 'NONE',
+            method: "NONE",
             isEnabled: false,
-            backupCodes: []
-          }
+            backupCodes: [],
+          },
         });
 
         // Generate email verification token
-        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationToken = crypto.randomBytes(32).toString("hex");
         const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-        // await tx.verificationToken.create({
-        //   data: {
-        //     token: verificationToken,
-        //     expiresAt: verificationExpiry,
-        //     userId: user.id
-        //   }
-        // });
 
         await tx.verificationToken.create({
           data: {
             token: verificationToken,
             expires: verificationExpiry, // Note: field is called 'expires' not 'expiresAt'
             userId: user.id,
-            identifier: email // Add the required identifier field
-          }
+            identifier: email, // Add the required identifier field
+          },
         });
 
         return { user, verificationToken };
       });
     } catch (transactionError) {
-      console.error('Transaction error:', transactionError);
-      throw new Error('Failed to create user and business');
+      console.error("Transaction error:", transactionError);
+      throw new Error("Failed to create user and business");
     }
 
     // Send verification email
@@ -203,7 +195,7 @@ export const signup = async (req: Request, res: Response) => {
 
     await sendMail({
       to: email,
-      subject: 'Verify your email',
+      subject: "Verify your email",
       react: VerificationEmail({ name, url: verificationUrl }),
     });
 
@@ -212,15 +204,15 @@ export const signup = async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: 'User created successfully. Please check your email to verify your account.',
-      user: userWithoutPassword
+      message:
+        "User created successfully. Please check your email to verify your account.",
+      user: userWithoutPassword,
     });
-
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error("Signup error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create user'
+      message: "Failed to create user",
     });
   }
 };

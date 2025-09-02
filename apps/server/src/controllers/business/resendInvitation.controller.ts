@@ -1,10 +1,10 @@
 // controllers/business/resendInvitation.controller.ts
-import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { AuthRequest } from '@/middleware/auth';
-import { generateToken } from '@/lib/utils';
-import { sendMail } from '@/utils/mailer';
-import { TeamInvitationEmail } from '@/emails/TeamInvitationEmail';
+import { Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import { AuthRequest } from "@/middleware/auth";
+import { generateToken } from "@/lib/utils";
+import { sendMail } from "@/utils/mailer";
+import { TeamInvitationEmail } from "@/emails/TeamInvitationEmail";
 
 const prisma = new PrismaClient();
 
@@ -16,29 +16,30 @@ export const resendInvitation = async (req: AuthRequest, res: Response) => {
     // Get user's business
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { business: true }
+      include: { business: true },
     });
 
     if (!user || !user.business) {
       return res.status(404).json({
         success: false,
-        message: 'Business not found'
+        message: "Business not found",
       });
     }
 
     // Get the invitation
     const invitation = await prisma.invitation.findFirst({
-      where: { 
+      where: {
         id: invitationId,
         businessId: user.businessId,
-        status: 'pending'
-      }
+        status: "pending",
+      },
+      include: { role: true },
     });
 
     if (!invitation) {
       return res.status(404).json({
         success: false,
-        message: 'Invitation not found'
+        message: "Invitation not found",
       });
     }
 
@@ -53,14 +54,14 @@ export const resendInvitation = async (req: AuthRequest, res: Response) => {
       data: {
         token: newToken,
         expiresAt: newExpiresAt,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Build the new invitation URL
     const invitationUrl = `${process.env.FRONTEND_URL}/accept-invitation?token=${newToken}&email=${encodeURIComponent(invitation.email)}`;
 
-    // Resend invitation email
+    // In resendInvitation.controller.ts, update the email sending part:
     await sendMail({
       to: invitation.email,
       subject: `You've been invited to join ${user.business.name} on Sendexa`,
@@ -68,21 +69,20 @@ export const resendInvitation = async (req: AuthRequest, res: Response) => {
         businessName: user.business.name,
         inviterName: `${user.firstName} ${user.lastName}`,
         invitationUrl,
-        role: invitation.role
+        role: invitation.role.name, // Use the role name from the included relation
       }),
     });
 
     res.status(200).json({
       success: true,
-      message: 'Invitation resent successfully',
-      invitation: updatedInvitation
+      message: "Invitation resent successfully",
+      invitation: updatedInvitation,
     });
-
   } catch (error) {
-    console.error('Resend invitation error:', error);
+    console.error("Resend invitation error:", error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: "Internal server error",
     });
   }
 };

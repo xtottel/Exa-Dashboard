@@ -1,3 +1,4 @@
+
 // controllers/business/inviteTeamMember.controller.ts
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -30,6 +31,18 @@ export const inviteTeamMember = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({
         success: false,
         message: 'Business not found'
+      });
+    }
+
+    // First, get the role ID from the role name
+    const roleRecord = await prisma.role.findFirst({
+      where: { name: role }
+    });
+
+    if (!roleRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role'
       });
     }
 
@@ -79,7 +92,7 @@ export const inviteTeamMember = async (req: AuthRequest, res: Response) => {
     const invitation = await prisma.invitation.create({
       data: {
         email: email.toLowerCase(),
-        role,
+        roleId: roleRecord.id, // Use the role ID instead of the role name
         token,
         expiresAt,
         businessId: user.businessId,
@@ -99,7 +112,7 @@ export const inviteTeamMember = async (req: AuthRequest, res: Response) => {
         businessName: user.business.name,
         inviterName: `${user.firstName} ${user.lastName}`,
         invitationUrl,
-        role
+        role: roleRecord.name // Pass the role name to the email template
       }),
     });
 
@@ -109,7 +122,7 @@ export const inviteTeamMember = async (req: AuthRequest, res: Response) => {
       invitation: {
         id: invitation.id,
         email: invitation.email,
-        role: invitation.role,
+        role: roleRecord.name, // Return the role name, not ID
         expiresAt: invitation.expiresAt
       }
     });

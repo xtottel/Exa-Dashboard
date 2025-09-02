@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 export const acceptInvitation = async (req: AuthRequest, res: Response) => {
   try {
     const { token, email, password, firstName, lastName } = req.body;
+    
     if (!token || !email) {
       return res.status(400).json({
         success: false,
@@ -16,7 +17,7 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Find the invitation
+    // Find the invitation with role included
     const invitation = await prisma.invitation.findFirst({
       where: {
         token,
@@ -26,6 +27,7 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
       include: {
         business: true,
         invitedBy: true,
+        role: true, // Include the role relation
       },
     });
 
@@ -52,15 +54,29 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
     // Check if user already exists
     let user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
+      include: {
+        role: true, // Ensure role is included in the user object
+      },
     });
 
     if (user) {
-      // If user exists, add them to the business
-      await prisma.user.update({
+      // If user exists, check if they're already in this business
+      if (user.businessId === invitation.businessId) {
+        return res.status(400).json({
+          success: false,
+          message: "You are already a member of this business",
+        });
+      }
+
+      // Add user to the business
+      user = await prisma.user.update({
         where: { id: user.id },
         data: {
           businessId: invitation.businessId,
-          role: invitation.role,
+          roleId: invitation.roleId,
+        },
+        include: {
+          role: true, // Include role in the response
         },
       });
     } else {
@@ -82,8 +98,12 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
           lastName,
           password: hashedPassword,
           businessId: invitation.businessId,
-          role: invitation.role,
-          emailVerified: new Date(), // Auto-verify since they're invited
+          roleId: invitation.roleId,
+          emailVerified: new Date(),
+          phone: "",
+        },
+        include: {
+          role: true, // Include role in the response
         },
       });
     }
@@ -102,9 +122,10 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role?.name || invitation.role?.name, // Use the role name from user or invitation
       },
     });
+
   } catch (error) {
     console.error("Accept invitation error:", error);
     res.status(500).json({

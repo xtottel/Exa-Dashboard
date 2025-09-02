@@ -36,7 +36,7 @@ function AcceptInvitationContent() {
     }
 
     try {
-      const res = await fetch("/api/business/accept-invitation", {
+      const res = await fetch("/api/business/invitations/accept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

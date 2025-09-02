@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -77,7 +76,7 @@ type TeamMember = {
 type Invitation = {
   id: string;
   email: string;
-  role: string | { id: string; name: string; description?: string }; // Updated to handle both string and object
+  role: { id: string; name: string; description?: string }; // Role is now an object
   invitedBy: {
     firstName: string;
     lastName: string;
@@ -94,17 +93,21 @@ interface ApiResponse {
   invitations?: Invitation[];
 }
 
-// Helper function to extract role name (handles both string and object)
-const getRoleName = (role: string | { id: string; name: string; description?: string }): string => {
-  if (typeof role === 'string') {
+const getRoleName = (
+  role: string | { id: string; name: string; description?: string }
+): string => {
+  if (typeof role === "string") {
     return role;
   }
   return role.name;
 };
 
-const getRoleBadge = (role: string | { id: string; name: string; description?: string }) => {
+// Update the getRoleBadge function to use getRoleName:
+const getRoleBadge = (
+  role: string | { id: string; name: string; description?: string }
+) => {
   const roleName = getRoleName(role);
-  
+
   const roleConfig = {
     owner: { label: "Owner", variant: "default" as const },
     admin: { label: "Admin", variant: "secondary" as const },
@@ -147,9 +150,15 @@ const TeamMemberSkeleton = () => (
         </div>
       </div>
     </TableCell>
-    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+    <TableCell>
+      <Skeleton className="h-6 w-16" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-6 w-16" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-20" />
+    </TableCell>
     <TableCell className="text-right">
       <Skeleton className="h-8 w-8 rounded-md" />
     </TableCell>
@@ -158,10 +167,18 @@ const TeamMemberSkeleton = () => (
 
 const InvitationSkeleton = () => (
   <TableRow>
-    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-40" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-6 w-16" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-32" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-20" />
+    </TableCell>
     <TableCell className="text-right">
       <div className="flex justify-end gap-2">
         <Skeleton className="h-8 w-16" />
@@ -327,9 +344,10 @@ export default function TeamPage() {
 
     setIsSubmitting(true);
     try {
-      const roleValue = typeof selectedMember.role === 'string' 
-        ? selectedMember.role 
-        : selectedMember.role.name;
+      const roleValue =
+        typeof selectedMember.role === "string"
+          ? selectedMember.role
+          : selectedMember.role.name;
 
       const response = await fetch(`/api/business/team/${selectedMember.id}`, {
         method: "PUT",
@@ -464,10 +482,11 @@ export default function TeamPage() {
                 </p>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
               <Button
                 variant="outline"
                 onClick={() => setIsInviteDialogOpen(false)}
+                className="mt-2 sm:mt-0"
               >
                 Cancel
               </Button>
@@ -678,9 +697,7 @@ export default function TeamPage() {
                         <TableCell className="font-medium">
                           {invitation.email}
                         </TableCell>
-                        <TableCell>
-                          {getRoleBadge(invitation.role)}
-                        </TableCell>
+                        <TableCell>{getRoleBadge(invitation.role)}</TableCell>
                         <TableCell>{`${invitation.invitedBy.firstName} ${invitation.invitedBy.lastName}`}</TableCell>
                         <TableCell>
                           {formatDate(invitation.createdAt)}
@@ -766,7 +783,7 @@ export default function TeamPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
