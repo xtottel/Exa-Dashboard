@@ -45,10 +45,17 @@ export const getBusinessProfile = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Add full URL to logo and certificate if they exist
+    const businessWithFullUrls = {
+      ...user.business,
+      logo: user.business.logo ? `${process.env.APP_URL || 'https://onclick.sendexa.co'}${user.business.logo}` : null,
+      businessCertificate: user.business.businessCertificate ? `${process.env.APP_URL || 'https://onclick.sendexa.co'}${user.business.businessCertificate}` : null
+    };
+
     res.status(200).json({
       success: true,
       message: 'Business profile retrieved successfully',
-      business: user.business
+      business: businessWithFullUrls
     });
 
   } catch (error) {

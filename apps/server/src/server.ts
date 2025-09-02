@@ -7,6 +7,7 @@ import { userRoutes } from '@/routes/user';
 import { apiRoutes } from '@/routes'; // Import the main API routes
 import { logger } from '@/utils/logger';
 import 'dotenv/config';
+import path from 'path';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 2806;
@@ -61,6 +62,8 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api', apiRoutes); // Use the main API routes
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check
 app.get('/health', (req, res) => {
