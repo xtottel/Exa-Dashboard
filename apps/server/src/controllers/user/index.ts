@@ -5,6 +5,14 @@ import { changePassword } from "./changePassword.controller";
 import { getActiveSessions } from "./getActiveSessions.controller";
 import { revokeSession } from "./revokeSession.controller";
 import { revokeAllSessions } from "./revokeAllSessions.controller";
+import {
+  getMfaSettings,
+  setupMfa,
+  verifyMfa,
+  disableMfa,
+  regenerateBackupCodes,
+  verifyBackupCode
+} from "./mfa.controller";
 
 export const userController = {
   getCurrentUser,
@@ -13,4 +21,10 @@ export const userController = {
   getActiveSessions,
   revokeSession,
   revokeAllSessions,
+  getMfaSettings,
+  setupMfa,
+  verifyMfa,
+  disableMfa,
+  regenerateBackupCodes,
+  verifyBackupCode
 };
