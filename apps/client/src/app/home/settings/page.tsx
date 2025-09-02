@@ -1,7 +1,6 @@
 // app/settings/page.tsx
 import { Card } from "@/components/ui/card";
-//import { Button } from "@/components/ui/button";
-import { User, Key } from "lucide-react";
+import { User, Key, Building, Users, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -11,6 +10,24 @@ export default function SettingsPage() {
       description: "Manage your personal information",
       icon: <User className="h-5 w-5" />,
       href: "/home/settings/profile",
+    },
+    {
+      title: "Business Profile",
+      description: "Update your company details and compliance information",
+      icon: <Building className="h-5 w-5" />,
+      href: "/home/settings/business",
+    },
+      {
+      title: "Security",
+      description: "Configure authentication and security settings",
+      icon: <Shield className="h-5 w-5" />,
+      href: "/home/settings/security",
+    },
+    {
+      title: "Team",
+      description: "Manage team members and roles",
+      icon: <Users className="h-5 w-5" />,
+      href: "/home/settings/team",
     },
     {
       title: "API Keys",
@@ -31,7 +48,10 @@ export default function SettingsPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {settingsSections.map((section) => (
-          <Card key={section.title} className="hover:border-primary transition-colors">
+          <Card
+            key={section.title}
+            className="hover:border-primary transition-colors"
+          >
             <Link href={section.href} className="p-6 block">
               <div className="flex items-start gap-4">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
