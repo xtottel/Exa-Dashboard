@@ -1,5 +1,6 @@
 export { authController } from './auth';
 export { userController } from './user';
+export { businessController } from './business'; // NEW: Export business controller
 export * from './sms';
 export * from './otp';
 export * from './contacts';

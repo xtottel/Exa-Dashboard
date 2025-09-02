@@ -233,7 +233,7 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  // Add this state variable with other useState declarations
+  // Add these state variables with other useState declarations
   const [mfaSettings, setMfaSettings] = useState<MFASettings | null>(null);
   const [isSettingUpMFA, setIsSettingUpMFA] = useState(false);
   const [mfaSetupData, setMfaSetupData] = useState({
@@ -242,6 +242,7 @@ export default function ProfileSettingsPage() {
     backupCodes: [] as string[],
   });
   const [verificationCode, setVerificationCode] = useState("");
+  const [isLoadingMFA, setIsLoadingMFA] = useState(false);
 
   // Add this effect to fetch MFA settings
   useEffect(() => {
@@ -250,6 +251,7 @@ export default function ProfileSettingsPage() {
 
   const fetchMfaSettings = async () => {
     try {
+      setIsLoadingMFA(true);
       const token = localStorage.getItem("bearerToken");
       const response = await fetch("/api/user/mfa", {
         method: "GET",
@@ -265,6 +267,9 @@ export default function ProfileSettingsPage() {
       }
     } catch (error) {
       console.error("Error fetching MFA settings:", error);
+      toast.error("Failed to fetch MFA settings");
+    } finally {
+      setIsLoadingMFA(false);
     }
   };
 
@@ -288,8 +293,12 @@ export default function ProfileSettingsPage() {
           secret: data.secret,
           backupCodes: data.backupCodes,
         });
+        toast.success(
+          "MFA setup initiated. Scan the QR code with your authenticator app."
+        );
       } else {
-        toast.error("Failed to setup MFA");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to setup MFA");
       }
     } catch (error) {
       console.error("Error setting up MFA:", error);
@@ -320,8 +329,8 @@ export default function ProfileSettingsPage() {
         setMfaSetupData({ qrCode: "", secret: "", backupCodes: [] });
         fetchMfaSettings(); // Refresh MFA status
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to verify MFA code");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to verify MFA code");
       }
     } catch (error) {
       console.error("Error verifying MFA:", error);
@@ -345,8 +354,8 @@ export default function ProfileSettingsPage() {
         toast.success("MFA disabled successfully");
         fetchMfaSettings(); // Refresh MFA status
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to disable MFA");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to disable MFA");
       }
     } catch (error) {
       console.error("Error disabling MFA:", error);
@@ -374,8 +383,8 @@ export default function ProfileSettingsPage() {
           backupCodes: data.backupCodes,
         });
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to regenerate backup codes");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to regenerate backup codes");
       }
     } catch (error) {
       console.error("Error regenerating backup codes:", error);
@@ -502,7 +511,9 @@ export default function ProfileSettingsPage() {
                     : "MFA is not yet enabled for your account"}
                 </div>
               </div>
-              {mfaSettings?.isEnabled ? (
+              {isLoadingMFA ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : mfaSettings?.isEnabled ? (
                 <Button variant="destructive" onClick={handleDisableMFA}>
                   Disable MFA
                 </Button>

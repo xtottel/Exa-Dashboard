@@ -43,7 +43,7 @@ export const setupMfa = async (req: AuthRequest, res: Response) => {
 
     // Generate a secret
     const secret = speakeasy.generateSecret({
-      name: `SMSApp (${req.user.email})`,
+      name: `Sendexa (${req.user.email})`,
       length: 20
     });
 

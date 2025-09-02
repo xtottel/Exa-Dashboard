@@ -48,8 +48,9 @@ export const resendVerification = async (req: Request, res: Response) => {
 
     await prisma.verificationToken.create({
       data: {
+        identifier: email,
         token: verificationToken,
-        expiresAt: verificationExpiry,
+        expires: verificationExpiry,
         userId: user.id
       }
     });

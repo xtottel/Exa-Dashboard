@@ -37,6 +37,8 @@ model Session {
   @@map("sessions")
 }
 
+
+
 model User {
   id                  String               @id @default(cuid())
   firstName           String
@@ -46,13 +48,14 @@ model User {
   password            String
   emailVerified       DateTime?
   isActive            Boolean              @default(true)
+  lastActive          DateTime?            // ADDED: Last active timestamp
   lastLogin           DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   businessId          String
   business            Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
   roleId              String
-  role                Role                 @relation(fields: [roleId], references: [id])
+  role                Role                 @relation(fields: [roleId], references: [id]) // FIXED: Added relation
   accounts            Account[]
   sessions            Session[]
   verificationTokens  VerificationToken[]
@@ -60,10 +63,33 @@ model User {
   authSessions        AuthSession[]
   mfaSettings         MFASettings?
   loginAttempts       LoginAttempt[]
+  sentInvitations     Invitation[]         // Invitations sent by this user
 
   @@index([email, isActive])
   @@index([businessId])
   @@map("users")
+}
+
+
+// NEW: Team Invitation Model
+model Invitation {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  email       String
+  roleId      String   // Change from role: String
+  role        Role     @relation(fields: [roleId], references: [id]) // Add relation
+  invitedById String
+  invitedBy   User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  token       String   @unique
+  status      String   @default("pending")
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([businessId, email])
+  @@index([token])
+  @@map("invitations")
 }
 
 model VerificationToken {
@@ -83,8 +109,13 @@ model Business {
   name                 String                @unique
   phone                String
   address              String?
-  registrationNumber   String?
   businessType         String?
+  businessSector       String?               // NEW: Added business sector
+  description          String?               // NEW: Company description
+  email                String?               // NEW: Company email
+  website              String?               // NEW: Company website
+  logo                 String?               // NEW: Company logo URL
+  businessCertificate  String?               // NEW: Certificate file URL
   isActive             Boolean               @default(true)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
@@ -102,9 +133,11 @@ model Business {
   smsAnalytics         SmsAnalytics[]
   otpAnalytics         OtpAnalytics[]
   networkDistributions NetworkDistribution[]
+  invitations          Invitation[]          // NEW: Team invitations
 
   @@map("businesses")
 }
+
 
 model Role {
   id          String   @id @default(cuid())
@@ -114,9 +147,11 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   users       User[]
+  invitations Invitation[] // ADDED: Invitations using this role
 
   @@map("roles")
 }
+
 
 model PasswordResetToken {
   id        String   @id @default(cuid())

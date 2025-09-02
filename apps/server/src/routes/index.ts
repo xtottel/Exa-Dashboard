@@ -9,6 +9,7 @@ import { senderIdRoutes } from './sender-id';
 import { creditsRoutes } from './credits';
 import { reportsRoutes } from './reports';
 import { settingsRoutes } from './settings';
+import { businessRoutes } from './business'; // NEW: Import business routes
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/sender-ids', senderIdRoutes);
 router.use('/credits', creditsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/business', businessRoutes); // NEW: Use business routes
 
 export { router as apiRoutes };
