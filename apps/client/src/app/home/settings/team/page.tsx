@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -55,10 +56,21 @@ import {
   Edit,
   Send,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type TeamMember = {
   id: string;
@@ -66,7 +78,7 @@ type TeamMember = {
   lastName: string;
   email: string;
   phone: string;
-  role: string | { id: string; name: string; description?: string }; // Updated to handle both string and object
+  role: string | { id: string; name: string; description?: string };
   isActive: boolean;
   lastActive: string | null;
   lastLogin: string | null;
@@ -76,7 +88,7 @@ type TeamMember = {
 type Invitation = {
   id: string;
   email: string;
-  role: { id: string; name: string; description?: string }; // Role is now an object
+  role: { id: string; name: string; description?: string };
   invitedBy: {
     firstName: string;
     lastName: string;
@@ -91,6 +103,7 @@ interface ApiResponse {
   message: string;
   teamMembers?: TeamMember[];
   invitations?: Invitation[];
+  currentUserRole?: string; // Add current user role to response
 }
 
 const getRoleName = (
@@ -102,7 +115,6 @@ const getRoleName = (
   return role.name;
 };
 
-// Update the getRoleBadge function to use getRoleName:
 const getRoleBadge = (
   role: string | { id: string; name: string; description?: string }
 ) => {
@@ -193,12 +205,15 @@ export default function TeamPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<string>("member");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("member");
 
   useEffect(() => {
     fetchTeamData();
@@ -213,6 +228,7 @@ export default function TeamPage() {
       if (data.success) {
         setTeamMembers(data.teamMembers || []);
         setInvitations(data.invitations || []);
+        setCurrentUserRole(data.currentUserRole || "member");
       } else {
         toast.error("Failed to fetch team data");
       }
@@ -231,6 +247,15 @@ export default function TeamPage() {
         .includes(searchQuery.toLowerCase()) ||
       member.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const canInvite = ["owner", "admin"].includes(currentUserRole);
+  const canEdit = ["owner", "admin"].includes(currentUserRole);
+  const canRemove = (member: TeamMember) => {
+    const memberRole = getRoleName(member.role);
+    return (
+      ["owner", "admin"].includes(currentUserRole) && memberRole !== "owner"
+    );
+  };
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
@@ -251,7 +276,7 @@ export default function TeamPage() {
       const data = await response.json();
 
       if (data.success) {
-        await fetchTeamData(); // Refresh data
+        await fetchTeamData();
         toast.success(
           <div>
             <div className="font-medium">Invitation sent</div>
@@ -286,7 +311,7 @@ export default function TeamPage() {
       const data = await response.json();
 
       if (data.success) {
-        await fetchTeamData(); // Refresh data
+        await fetchTeamData();
         toast.success(
           <div>
             <div className="font-medium">Invitation resent</div>
@@ -316,7 +341,7 @@ export default function TeamPage() {
       const data = await response.json();
 
       if (data.success) {
-        await fetchTeamData(); // Refresh data
+        await fetchTeamData();
         toast.success(
           <div>
             <div className="font-medium">Invitation canceled</div>
@@ -362,7 +387,7 @@ export default function TeamPage() {
       const data = await response.json();
 
       if (data.success) {
-        await fetchTeamData(); // Refresh data
+        await fetchTeamData();
         toast.success(
           <div>
             <div className="font-medium">Member updated</div>
@@ -384,22 +409,28 @@ export default function TeamPage() {
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
+  const confirmRemoveMember = (member: TeamMember) => {
+    setMemberToRemove(member);
+    setIsRemoveDialogOpen(true);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+
     try {
-      const response = await fetch(`/api/business/team/${memberId}`, {
+      const response = await fetch(`/api/business/team/${memberToRemove.id}`, {
         method: "DELETE",
       });
 
       const data = await response.json();
 
       if (data.success) {
-        await fetchTeamData(); // Refresh data
-        const member = teamMembers.find((m) => m.id === memberId);
+        await fetchTeamData();
         toast(
           <div>
             <div className="font-medium text-destructive">Member removed</div>
             <div className="text-sm text-muted-foreground">
-              {`${member?.firstName} ${member?.lastName} has been removed from the team.`}
+              {`${memberToRemove.firstName} ${memberToRemove.lastName} has been removed from the team.`}
             </div>
           </div>
         );
@@ -409,6 +440,9 @@ export default function TeamPage() {
     } catch (error) {
       console.error("Error removing member:", error);
       toast.error("Failed to remove member");
+    } finally {
+      setIsRemoveDialogOpen(false);
+      setMemberToRemove(null);
     }
   };
 
@@ -439,71 +473,73 @@ export default function TeamPage() {
           </div>
         </div>
 
-        <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
-              <DialogDescription>
-                Send an invitation to someone to join your team. They will
-                receive an email with instructions.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="team.member@example.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Select value={inviteRole} onValueChange={setInviteRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Admins can manage team members and settings. Members have
-                  limited access.
-                </p>
-              </div>
-            </div>
-            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsInviteDialogOpen(false)}
-                className="mt-2 sm:mt-0"
-              >
-                Cancel
+        {canInvite && (
+          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite Member
               </Button>
-              <Button
-                onClick={handleInvite}
-                disabled={!inviteEmail.trim() || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="mr-2 h-4 w-4" />
-                )}
-                Send Invitation
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite Team Member</DialogTitle>
+                <DialogDescription>
+                  Send an invitation to someone to join your team. They will
+                  receive an email with instructions.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="team.member@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={inviteRole} onValueChange={setInviteRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="member">Member</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Admins can manage team members and settings. Members have
+                    limited access.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsInviteDialogOpen(false)}
+                  className="mt-2 sm:mt-0"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleInvite}
+                  disabled={!inviteEmail.trim() || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="mr-2 h-4 w-4" />
+                  )}
+                  Send Invitation
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Tabs defaultValue="members" className="w-full">
@@ -546,18 +582,17 @@ export default function TeamPage() {
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {canEdit && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    // Skeleton loading state
                     Array.from({ length: 5 }).map((_, index) => (
                       <TeamMemberSkeleton key={index} />
                     ))
                   ) : filteredTeamMembers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">
+                      <TableCell colSpan={canEdit ? 5 : 4} className="h-24 text-center">
                         <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                           <UserCog className="h-8 w-8" />
                           <p>No team members found</p>
@@ -595,41 +630,42 @@ export default function TeamPage() {
                           )}
                         </TableCell>
                         <TableCell>{formatDate(member.createdAt)}</TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleEditMember(member)}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Role
-                              </DropdownMenuItem>
-                              {getRoleName(member.role) !== "owner" && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
-                                    onClick={() =>
-                                      handleRemoveMember(member.id)
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Remove Member
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                        {canEdit && (
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleEditMember(member)}
+                                  disabled={getRoleName(member.role) === "owner"}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Role
+                                </DropdownMenuItem>
+                                {canRemove(member) && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600 focus:text-red-600"
+                                      onClick={() => confirmRemoveMember(member)}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Remove Member
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
@@ -649,7 +685,6 @@ export default function TeamPage() {
             </CardHeader>
             <CardContent className="p-0">
               {isLoading ? (
-                // Skeleton loading state for invitations
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -657,7 +692,7 @@ export default function TeamPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Invited By</TableHead>
                       <TableHead>Invited On</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      {canInvite && <TableHead className="text-right">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -675,10 +710,12 @@ export default function TeamPage() {
                   <p className="text-muted-foreground mb-4">
                     You haven&apos;t sent any invitations yet.
                   </p>
-                  <Button onClick={() => setIsInviteDialogOpen(true)}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Invite Team Member
-                  </Button>
+                  {canInvite && (
+                    <Button onClick={() => setIsInviteDialogOpen(true)}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Invite Team Member
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <Table>
@@ -688,7 +725,7 @@ export default function TeamPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Invited By</TableHead>
                       <TableHead>Invited On</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      {canInvite && <TableHead className="text-right">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -702,24 +739,26 @@ export default function TeamPage() {
                         <TableCell>
                           {formatDate(invitation.createdAt)}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleResendInvite(invitation.id)}
-                            >
-                              Resend
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelInvite(invitation.id)}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </TableCell>
+                        {canInvite && (
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendInvite(invitation.id)}
+                              >
+                                Resend
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelInvite(invitation.id)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -783,7 +822,7 @@ export default function TeamPage() {
               </div>
             </div>
           )}
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
             <Button
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
@@ -799,6 +838,32 @@ export default function TeamPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Remove Member Confirmation Dialog */}
+      <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Remove Team Member
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {memberToRemove?.firstName}{" "}
+              {memberToRemove?.lastName} from your team? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveMember}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove Member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,3 +1,128 @@
+// // controllers/business/getTeamMembers.controller.ts
+// import { Response } from 'express';
+// import { Invitation, PrismaClient, Role, User } from '@prisma/client';
+// import { AuthRequest } from '@/middleware/auth';
+
+// const prisma = new PrismaClient();
+
+// // Define types for the mapped responses
+// interface TeamMemberResponse {
+//   id: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   role: Role;
+//   isActive: boolean;
+//   lastActive: Date | null;
+//   lastLogin: Date | null;
+//   createdAt: Date;
+// }
+
+// interface InvitationResponse {
+//   id: string;
+//   email: string;
+//   role: Role; // Changed from string to Role
+//   invitedBy: {
+//     firstName: string;
+//     lastName: string;
+//   };
+//   status: string;
+//   expiresAt: Date;
+//   createdAt: Date;
+// }
+
+// export const getTeamMembers = async (req: AuthRequest, res: Response) => {
+//   try {
+//     const { search } = req.query;
+//     const businessId = req.user.businessId;
+
+//     if (!businessId) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Business not found'
+//       });
+//     }
+
+//     // Get team members
+//     const teamMembers = await prisma.user.findMany({
+//       where: {
+//         businessId: businessId,
+//         ...(search && {
+//           OR: [
+//             { firstName: { contains: search as string, mode: 'insensitive' } },
+//             { lastName: { contains: search as string, mode: 'insensitive' } },
+//             { email: { contains: search as string, mode: 'insensitive' } }
+//           ]
+//         })
+//       },
+//       include: {
+//         role: true
+//       },
+//       orderBy: { createdAt: 'desc' }
+//     });
+
+//     // Get pending invitations with role included
+//     const invitations = await prisma.invitation.findMany({
+//       where: {
+//         businessId: businessId,
+//         status: 'pending'
+//       },
+//       include: {
+//         invitedBy: {
+//           select: {
+//             firstName: true,
+//             lastName: true
+//           }
+//         },
+//         role: true // Include the role relation
+//       }
+//     });
+
+//     // Map team members with explicit typing
+//     const mappedTeamMembers: TeamMemberResponse[] = teamMembers.map((member: User & { role: Role }) => ({
+//       id: member.id,
+//       firstName: member.firstName,
+//       lastName: member.lastName,
+//       email: member.email,
+//       phone: member.phone,
+//       role: member.role,
+//       isActive: member.isActive,
+//       lastActive: member.lastActive,
+//       lastLogin: member.lastLogin,
+//       createdAt: member.createdAt
+//     }));
+
+//     // Map invitations with explicit typing
+//     const mappedInvitations: InvitationResponse[] = invitations.map((invitation: Invitation & { 
+//       invitedBy: { firstName: string; lastName: string };
+//       role: Role; // Add role to the type
+//     }) => ({
+//       id: invitation.id,
+//       email: invitation.email,
+//       role: invitation.role, // Use the role object instead of roleId
+//       invitedBy: invitation.invitedBy,
+//       status: invitation.status,
+//       expiresAt: invitation.expiresAt,
+//       createdAt: invitation.createdAt
+//     }));
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Team members retrieved successfully',
+//       teamMembers: mappedTeamMembers,
+//       invitations: mappedInvitations
+//     });
+
+//   } catch (error) {
+//     console.error('Get team members error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal server error'
+//     });
+//   }
+// };
+
 // controllers/business/getTeamMembers.controller.ts
 import { Response } from 'express';
 import { Invitation, PrismaClient, Role, User } from '@prisma/client';
@@ -5,6 +130,7 @@ import { AuthRequest } from '@/middleware/auth';
 
 const prisma = new PrismaClient();
 
+// ... existing code ...
 // Define types for the mapped responses
 interface TeamMemberResponse {
   id: string;
@@ -32,10 +158,12 @@ interface InvitationResponse {
   createdAt: Date;
 }
 
+
 export const getTeamMembers = async (req: AuthRequest, res: Response) => {
   try {
     const { search } = req.query;
     const businessId = req.user.businessId;
+    const userId = req.user.id;
 
     if (!businessId) {
       return res.status(404).json({
@@ -43,6 +171,12 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
         message: 'Business not found'
       });
     }
+
+    // Get current user's role
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true }
+    });
 
     // Get team members
     const teamMembers = await prisma.user.findMany({
@@ -75,7 +209,7 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
             lastName: true
           }
         },
-        role: true // Include the role relation
+        role: true
       }
     });
 
@@ -96,11 +230,11 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
     // Map invitations with explicit typing
     const mappedInvitations: InvitationResponse[] = invitations.map((invitation: Invitation & { 
       invitedBy: { firstName: string; lastName: string };
-      role: Role; // Add role to the type
+      role: Role;
     }) => ({
       id: invitation.id,
       email: invitation.email,
-      role: invitation.role, // Use the role object instead of roleId
+      role: invitation.role,
       invitedBy: invitation.invitedBy,
       status: invitation.status,
       expiresAt: invitation.expiresAt,
@@ -111,7 +245,8 @@ export const getTeamMembers = async (req: AuthRequest, res: Response) => {
       success: true,
       message: 'Team members retrieved successfully',
       teamMembers: mappedTeamMembers,
-      invitations: mappedInvitations
+      invitations: mappedInvitations,
+      currentUserRole: currentUser?.role?.name || 'member' // Add current user role to response
     });
 
   } catch (error) {
