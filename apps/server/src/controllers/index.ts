@@ -1,6 +1,8 @@
 export { authController } from './auth';
 export { userController } from './user';
 export { businessController } from './business'; // NEW: Export business controller
+export { apiKeyController } from './api-key'; // NEW: Export API key controller
+
 export * from './sms';
 export * from './otp';
 export * from './contacts';
@@ -9,3 +11,4 @@ export * from './sender-id';
 export * from './credits';
 export * from './reports';
 export * from './settings';
+export * from './api-key';

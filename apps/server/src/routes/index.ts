@@ -1,3 +1,4 @@
+// routes/index.ts
 import { Router } from 'express';
 import { authRoutes } from './auth';
 import { userRoutes } from './user';
@@ -9,7 +10,8 @@ import { senderIdRoutes } from './sender-id';
 import { creditsRoutes } from './credits';
 import { reportsRoutes } from './reports';
 import { settingsRoutes } from './settings';
-import { businessRoutes } from './business'; // NEW: Import business routes
+import { businessRoutes } from './business';
+import { apiKeyRoutes } from './api-key';
 
 const router = Router();
 
@@ -23,6 +25,7 @@ router.use('/sender-ids', senderIdRoutes);
 router.use('/credits', creditsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/settings', settingsRoutes);
-router.use('/business', businessRoutes); // NEW: Use business routes
+router.use('/business', businessRoutes);
+router.use('/api-keys', apiKeyRoutes); // This will create /api/api-keys routes
 
 export { router as apiRoutes };

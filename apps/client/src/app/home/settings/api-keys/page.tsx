@@ -1,3 +1,5 @@
+
+
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +19,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,10 +32,11 @@ import {
   ChevronLeft,
   Trash2,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -43,193 +45,283 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Generate a random 8-character string
-const generateClientId = () => {
-  return Math.random().toString(36).substring(2, 10);
-};
-
-// Generate a UUID v4
-const generateClientSecret = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
-
-type ClientCredential = {
+type ApiKey = {
   id: string;
   name: string;
-  clientId: string;
-  clientSecret: string;
-  lastUsed: string;
-  created: string;
-  status: "live" | "test";
+  key: string;
+  secret: string;
+  permissions: string[];
+  expiresAt: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  isActive: boolean;
 };
 
-const initialClients: ClientCredential[] = [
-  {
-    id: "1",
-    name: "Production App",
-    clientId: "abc123def",
-    clientSecret: "123e4567-e89b-12d3-a456-426614174000",
-    lastUsed: "2023-06-15 09:30:45",
-    created: "2023-05-10",
-    status: "live",
-  },
-  {
-    id: "2",
-    name: "Test App",
-    clientId: "test7890",
-    clientSecret: "223e4567-e89b-12d3-a456-426614174001",
-    lastUsed: "2023-06-10 14:22:18",
-    created: "2023-04-15",
-    status: "test",
-  },
-];
-
-const getStatusBadge = (status: ClientCredential["status"]) => {
-  return (
-    <Badge variant="status" status={status}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
-  );
+type CreateApiKeyRequest = {
+  name: string;
+  permissions?: string[];
 };
 
-export default function ClientCredentialsPage() {
-  const [clients, setClients] = useState<ClientCredential[]>(initialClients);
+export default function ApiKeysPage() {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [showSecret, setShowSecret] = useState<string | null>(null);
-  const [newClientName, setNewClientName] = useState("");
+  const [newKeyName, setNewKeyName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
+  const [viewKey, setViewKey] = useState<ApiKey | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [viewClient, setViewClient] = useState<ClientCredential | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState<string | null>(null);
+  const [creatingLoading, setCreatingLoading] = useState(false);
+
+  useEffect(() => {
+    fetchApiKeys();
+  }, []);
+
+  const fetchApiKeys = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("bearerToken");
+
+      const response = await fetch("/api/api-keys", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setApiKeys(data.data || []);
+      } else {
+        toast.error("Failed to fetch API keys");
+      }
+    } catch (error) {
+      console.error("Error fetching API keys:", error);
+      toast.error("Failed to fetch API keys");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCopy = (text: string, message: string) => {
     navigator.clipboard.writeText(text);
     toast.success(message);
   };
 
-  const handleCreate = () => {
-    if (newClientName.trim()) {
-      // Generate new client credentials
-      const newClient: ClientCredential = {
-        id: Date.now().toString(),
-        name: newClientName,
-        clientId: generateClientId(),
-        clientSecret: generateClientSecret(),
-        lastUsed: "Never",
-        created: new Date().toISOString().split("T")[0],
-        status: "live", // All new keys are live automatically
-      };
+  const handleCreate = async () => {
+    if (!newKeyName.trim()) return;
 
-      setClients([...clients, newClient]);
+    try {
+      setCreatingLoading(true);
+      const token = localStorage.getItem("bearerToken");
+      const response = await fetch("/api/api-keys", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newKeyName.trim(),
+          permissions: ["sms.send", "sms.read", "contacts.read"],
+        } as CreateApiKeyRequest),
+      });
 
-      toast.success(
-        `Client credentials created. New client "${newClientName}" has been generated.`
-      );
+      const data = await response.json();
 
-      setIsCreating(false);
-      setNewClientName("");
-    }
-  };
+      if (data.success) {
+        await fetchApiKeys();
+        toast.success(`API key "${newKeyName}" created successfully`);
 
-  const handleDelete = (id: string) => {
-    setIsDeleting(true);
-    setClientToDelete(id);
-  };
+        // Show the secret key in a dialog
+        setViewKey(data.data);
+        setShowSecret(data.data.id);
 
-  const confirmDelete = () => {
-    if (clientToDelete) {
-      const client = clients.find((c) => c.id === clientToDelete);
-      if (client?.status === "test") {
-        toast.error(
-          "Cannot delete test credentials. Test credentials are permanent."
-        );
-        setIsDeleting(false);
-        setClientToDelete(null);
-        return;
+        setIsCreating(false);
+        setNewKeyName("");
+      } else {
+        toast.error(data.message || "Failed to create API key");
       }
-
-      setClients(clients.filter((client) => client.id !== clientToDelete));
-
-      toast.success(
-        <div>
-          <strong>Client credentials deleted</strong>
-          <div>The client credentials have been permanently removed.</div>
-        </div>,
-        { className: "bg-destructive text-destructive-foreground" }
-      );
+    } catch (error) {
+      console.error("Error creating API key:", error);
+      toast.error("Failed to create API key");
+    } finally {
+      setCreatingLoading(false);
     }
-
-    setIsDeleting(false);
-    setClientToDelete(null);
   };
 
-  const cancelDelete = () => {
-    setIsDeleting(false);
-    setClientToDelete(null);
+  const handleDelete = async () => {
+    if (!keyToDelete) return;
+
+    try {
+      const token = localStorage.getItem("bearerToken");
+      const response = await fetch(`/api/api-keys/${keyToDelete}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchApiKeys();
+        toast.success("API key deleted successfully");
+      } else {
+        toast.error(data.message || "Failed to delete API key");
+      }
+    } catch (error) {
+      console.error("Error deleting API key:", error);
+      toast.error("Failed to delete API key");
+    } finally {
+      setIsDeleting(false);
+      setKeyToDelete(null);
+    }
   };
 
-  const handleRegenerate = (
+  const handleRegenerate = async (
     id: string,
-    types: ("clientId" | "clientSecret") | ("clientId" | "clientSecret")[]
+    regenerateSecret: boolean = false
   ) => {
-    const typeArray = Array.isArray(types) ? types : [types];
+    try {
+      setIsRegenerating(id);
+      const token = localStorage.getItem("bearerToken");
+      const response = await fetch(`/api/api-keys/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          regenerateSecret,
+        }),
+      });
 
-    setClients(
-      clients.map((client) => {
-        if (client.id === id) {
-          const updatedClient = { ...client, lastUsed: "Never" };
+      const data = await response.json();
 
-          if (typeArray.includes("clientId")) {
-            updatedClient.clientId = generateClientId();
-          }
+      if (data.success) {
+        await fetchApiKeys();
 
-          if (typeArray.includes("clientSecret")) {
-            updatedClient.clientSecret = generateClientSecret();
-          }
-
-          return updatedClient;
+        if (regenerateSecret && data.data) {
+          // Show the new secret key
+          setViewKey(data.data);
+          setShowSecret(data.data.id);
         }
-        return client;
-      })
-    );
 
-    // Toast message
-    if (typeArray.length === 2) {
-      toast.success(
-        <div>
-          <strong>Credentials regenerated</strong>
-          <div>
-            Both Client ID and Client Secret have been successfully regenerated.
-          </div>
-        </div>
-      );
-    } else {
-      const type = typeArray[0];
-      toast.success(
-        <div>
-          <strong>
-            {type === "clientId" ? "Client ID" : "Client Secret"} regenerated
-          </strong>
-          <div>
-            The {type === "clientId" ? "Client ID" : "Client Secret"} has been
-            successfully regenerated.
-          </div>
-        </div>
-      );
+        toast.success(
+          regenerateSecret
+            ? "API secret regenerated successfully"
+            : "API key updated successfully"
+        );
+      } else {
+        toast.error(data.message || "Failed to regenerate API key");
+      }
+    } catch (error) {
+      console.error("Error regenerating API key:", error);
+      toast.error("Failed to regenerate API key");
+    } finally {
+      setIsRegenerating(null);
     }
   };
 
-  const openViewDialog = (client: ClientCredential) => {
-    setViewClient(client);
+  const toggleKeyStatus = async (id: string, isActive: boolean) => {
+    try {
+      const token = localStorage.getItem("bearerToken");
+      const response = await fetch(`/api/api-keys/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isActive,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchApiKeys();
+        toast.success(
+          `API key ${isActive ? "activated" : "deactivated"} successfully`
+        );
+      } else {
+        toast.error(data.message || "Failed to update API key");
+      }
+    } catch (error) {
+      console.error("Error updating API key:", error);
+      toast.error("Failed to update API key");
+    }
   };
 
-  const closeViewDialog = () => {
-    setViewClient(null);
+  const getBase64Credentials = (apiKey: ApiKey) => {
+    if (!apiKey.secret) return "";
+    const credentials = `${apiKey.key}:${apiKey.secret}`;
+    return btoa(credentials);
   };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Never";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getStatusBadge = (isActive: boolean) => {
+    return (
+      <Badge variant={isActive ? "success" : "destructive"}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    );
+  };
+
+  // Skeleton components
+  const TableSkeleton = () => (
+    <>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <TableRow key={index}>
+          <TableCell>
+            <Skeleton className="h-4 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-48" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-40" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="h-8 w-8 ml-auto" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -242,11 +334,9 @@ export default function ClientCredentialsPage() {
           </Button>
 
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Client Credentials
-            </h1>
+            <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
             <p className="text-muted-foreground">
-              Manage your OAuth client IDs and secrets
+              Manage your API keys and secrets
             </p>
           </div>
         </div>
@@ -255,28 +345,28 @@ export default function ClientCredentialsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Create New Credentials
+              Create New API Key
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Client Details</DialogTitle>
+              <DialogTitle>Create API Key</DialogTitle>
               <DialogDescription>
-                Detailed information about this OAuth client application
+                Create a new API key for your applications
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Credential Name *</Label>
+                <Label htmlFor="name">API Key Name *</Label>
                 <Input
                   id="name"
                   placeholder="e.g. Production Server"
-                  value={newClientName}
-                  onChange={(e) => setNewClientName(e.target.value)}
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  A descriptive name for your credentials.
+                  A descriptive name for your API key.
                 </p>
               </div>
             </div>
@@ -285,8 +375,18 @@ export default function ClientCredentialsPage() {
               <Button variant="outline" onClick={() => setIsCreating(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreate} disabled={!newClientName.trim()}>
-                Generate Credentials
+              <Button 
+                onClick={handleCreate} 
+                disabled={!newKeyName.trim() || creatingLoading}
+              >
+                {creatingLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create API Key"
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -299,8 +399,8 @@ export default function ClientCredentialsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Client ID</TableHead>
-                <TableHead>Client Secret</TableHead>
+                <TableHead>API Key</TableHead>
+                <TableHead>Secret Key</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Last Used</TableHead>
@@ -308,41 +408,40 @@ export default function ClientCredentialsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.length === 0 ? (
+              {isLoading ? (
+                <TableSkeleton />
+              ) : apiKeys.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center">
                     <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                       <Key className="h-8 w-8" />
-                      <p>No client credentials found</p>
+                      <p>No API keys found</p>
                       <p className="text-sm">
-                        Create your first credentials to get started
+                        Create your first API key to get started
                       </p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                clients.map((client) => (
-                  <TableRow key={client.id}>
+                apiKeys.map((key) => (
+                  <TableRow key={key.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Key className="h-4 w-4 text-muted-foreground" />
-                        {client.name}
+                        {key.name}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                          {client.clientId}
+                          {key.key}
                         </code>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6"
                           onClick={() =>
-                            handleCopy(
-                              client.clientId,
-                              "Client ID copied to clipboard"
-                            )
+                            handleCopy(key.key, "API key copied to clipboard")
                           }
                         >
                           <Copy className="h-4 w-4" />
@@ -352,8 +451,8 @@ export default function ClientCredentialsPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                          {showSecret === client.id
-                            ? client.clientSecret
+                          {showSecret === key.id
+                            ? key.secret
                             : "••••••••••••••••"}
                         </code>
                         <Button
@@ -361,12 +460,10 @@ export default function ClientCredentialsPage() {
                           size="icon"
                           className="h-6 w-6"
                           onClick={() =>
-                            setShowSecret(
-                              showSecret === client.id ? null : client.id
-                            )
+                            setShowSecret(showSecret === key.id ? null : key.id)
                           }
                         >
-                          {showSecret === client.id ? (
+                          {showSecret === key.id ? (
                             <EyeOff className="h-4 w-4" />
                           ) : (
                             <Eye className="h-4 w-4" />
@@ -378,8 +475,8 @@ export default function ClientCredentialsPage() {
                           className="h-6 w-6"
                           onClick={() =>
                             handleCopy(
-                              client.clientSecret,
-                              "Client Secret copied to clipboard"
+                              key.secret,
+                              "Secret key copied to clipboard"
                             )
                           }
                         >
@@ -387,9 +484,9 @@ export default function ClientCredentialsPage() {
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(client.status)}</TableCell>
-                    <TableCell>{client.created}</TableCell>
-                    <TableCell>{client.lastUsed}</TableCell>
+                    <TableCell>{getStatusBadge(key.isActive)}</TableCell>
+                    <TableCell>{formatDate(key.createdAt)}</TableCell>
+                    <TableCell>{formatDate(key.lastUsedAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <DropdownMenu>
@@ -404,40 +501,57 @@ export default function ClientCredentialsPage() {
                           </DropdownMenuTrigger>
 
                           <DropdownMenuContent align="end">
-                            {/* View details of this client */}
-                            <DropdownMenuItem
-                              onClick={() => openViewDialog(client)}
-                            >
+                            <DropdownMenuItem onClick={() => {
+                              setViewKey(key);
+                              setShowSecret(null); // Reset secret visibility when viewing details
+                            }}>
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              onClick={() =>
+                                toggleKeyStatus(key.id, !key.isActive)
+                              }
+                            >
+                              {key.isActive ? (
+                                <>
+                                  <EyeOff className="h-4 w-4 mr-2" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Activate
+                                </>
+                              )}
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />
 
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleRegenerate(client.id, [
-                                  "clientId",
-                                  "clientSecret",
-                                ])
-                              }
+                              onClick={() => handleRegenerate(key.id, true)}
+                              disabled={isRegenerating === key.id}
                             >
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Regenerate Credentials
+                              {isRegenerating === key.id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                              )}
+                              Regenerate Secret
                             </DropdownMenuItem>
 
-                            {client.status !== "test" && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-red-600 focus:text-red-600"
-                                  onClick={() => handleDelete(client.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete Credentials
-                                </DropdownMenuItem>
-                              </>
-                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              onClick={() => {
+                                setKeyToDelete(key.id);
+                                setIsDeleting(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete API Key
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -450,53 +564,56 @@ export default function ClientCredentialsPage() {
         </CardContent>
       </Card>
 
-      {/* View Client Details Dialog */}
+      {/* View API Key Details Dialog */}
       <Dialog
-        open={!!viewClient}
-        onOpenChange={(open) => !open && closeViewDialog()}
+        open={!!viewKey}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewKey(null);
+            setShowSecret(null); // Reset secret visibility when closing dialog
+          }
+        }}
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>SMS API Credentials</DialogTitle>
+            <DialogTitle>API Key Details</DialogTitle>
             <DialogDescription>
-              Detailed information about your SMS API credentials
+              Detailed information about your API key
             </DialogDescription>
           </DialogHeader>
-          {viewClient && (
+          {viewKey && (
             <div className="space-y-6 py-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Credential Name</Label>
-                  <p className="text-sm font-medium">{viewClient.name}</p>
+                  <Label>API Key Name</Label>
+                  <p className="text-sm font-medium">{viewKey.name}</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Status</Label>
-                  <div>{getStatusBadge(viewClient.status)}</div>
+                  <div>{getStatusBadge(viewKey.isActive)}</div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Client ID</Label>
+                  <Label>API Key</Label>
                   <div className="flex items-center gap-2">
                     <code className="relative rounded bg-muted px-2 py-1 font-mono text-sm">
-                      {viewClient.clientId}
+                      {viewKey.key}
                     </code>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
-                      onClick={() =>
-                        handleCopy(viewClient.clientId, "Client ID copied")
-                      }
+                      onClick={() => handleCopy(viewKey.key, "API key copied")}
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Client Secret</Label>
+                  <Label>Secret Key</Label>
                   <div className="flex items-center gap-2">
                     <code className="relative rounded bg-muted px-2 py-1 font-mono text-sm">
-                      {showSecret === viewClient.id
-                        ? viewClient.clientSecret
+                      {showSecret === viewKey.id
+                        ? viewKey.secret
                         : "••••••••••••••••"}
                     </code>
                     <Button
@@ -505,11 +622,11 @@ export default function ClientCredentialsPage() {
                       className="h-6 w-6"
                       onClick={() =>
                         setShowSecret(
-                          showSecret === viewClient.id ? null : viewClient.id
+                          showSecret === viewKey.id ? null : viewKey.id
                         )
                       }
                     >
-                      {showSecret === viewClient.id ? (
+                      {showSecret === viewKey.id ? (
                         <EyeOff className="h-3 w-3" />
                       ) : (
                         <Eye className="h-3 w-3" />
@@ -520,48 +637,82 @@ export default function ClientCredentialsPage() {
                       size="icon"
                       className="h-6 w-6"
                       onClick={() =>
-                        handleCopy(
-                          viewClient.clientSecret,
-                          "Client Secret copied"
-                        )
+                        handleCopy(viewKey.secret, "Secret key copied")
                       }
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Base64 Credentials (for API authentication)</Label>
+                  <div className="flex items-center gap-2">
+                    <code className="relative rounded bg-muted px-2 py-1 font-mono text-sm break-all">
+                      {getBase64Credentials(viewKey) || "Not available"}
+                    </code>
+                    {getBase64Credentials(viewKey) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 flex-shrink-0"
+                        onClick={() =>
+                          handleCopy(
+                            getBase64Credentials(viewKey),
+                            "Base64 credentials copied"
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use these credentials for Basic Auth: Authorization: Basic {getBase64Credentials(viewKey) ? "[above_credentials]" : "Not available"}
+                  </p> 
+                </div>
+                <div className="space-y-2">
+                  <Label>Created</Label>
+                  <p className="text-sm">{formatDate(viewKey.createdAt)}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Used</Label>
+                  <p className="text-sm">{formatDate(viewKey.lastUsedAt)}</p>
+                </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
+            <Button variant="outline" onClick={() => {
+              setViewKey(null);
+              setShowSecret(null);
+            }}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete these client credentials? This
-              action cannot be undone and any applications using these
-              credentials will stop working.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete Credentials
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this API key? This action cannot
+              be undone and any applications using this key will stop working.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete API Key
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
