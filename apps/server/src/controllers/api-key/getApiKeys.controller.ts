@@ -1,3 +1,4 @@
+// controllers/api-key/getApiKeys.controller.ts
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
@@ -12,6 +13,7 @@ export const getApiKeys = async (req: AuthRequest, res: Response) => {
       where: { businessId },
       select: {
         id: true,
+        businessId: true,
         name: true,
         key: true,
         permissions: true,
@@ -19,6 +21,7 @@ export const getApiKeys = async (req: AuthRequest, res: Response) => {
         createdAt: true,
         lastUsedAt: true,
         isActive: true
+        // EXCLUDE the secret field entirely
       },
       orderBy: { createdAt: 'desc' }
     });

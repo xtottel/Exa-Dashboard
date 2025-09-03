@@ -1,3 +1,4 @@
+
 // controllers/api-key/createApiKey.controller.ts
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -19,9 +20,9 @@ export const createApiKey = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Generate API key and secret
-    const key = crypto.randomBytes(16).toString('hex');
-    const secret = crypto.randomBytes(32).toString('hex');
+    // Generate shorter API key and secret for SMS platform
+    const key = `exa_${crypto.randomBytes(8).toString('hex')}`; // 24 chars total
+    const secret = crypto.randomBytes(12).toString('hex'); // 32 chars
     
     // Hash the secret for storage
     const hashedSecret = await hashPassword(secret);
@@ -32,7 +33,7 @@ export const createApiKey = async (req: AuthRequest, res: Response) => {
         name,
         key,
         secret: hashedSecret,
-        permissions: permissions || [],
+        permissions: permissions || ['sms.send', 'sms.read', 'contacts.read'],
         expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
       }
     });

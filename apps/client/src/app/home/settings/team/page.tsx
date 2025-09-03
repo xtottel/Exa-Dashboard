@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -121,33 +120,46 @@ const getRoleBadge = (
   const roleName = getRoleName(role);
 
   const roleConfig = {
-    owner: { label: "Owner", variant: "default" as const },
-    admin: { label: "Admin", variant: "secondary" as const },
-    member: { label: "Member", variant: "outline" as const },
+    owner: {
+      label: "Owner",
+      variant: "role" as const,
+      roleType: "owner" as const,
+    },
+    admin: {
+      label: "Admin",
+      variant: "role" as const,
+      roleType: "admin" as const,
+    },
+    member: {
+      label: "Member",
+      variant: "role" as const,
+      roleType: "member" as const,
+    },
   };
 
   const config = roleConfig[roleName as keyof typeof roleConfig] || {
     label: roleName,
     variant: "outline" as const,
   };
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+
+  if (config.variant === "role") {
+    return (
+      <Badge variant={config.variant} role={config.roleType}>
+        {config.label}
+      </Badge>
+    );
+  } else {
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  }
 };
 
-const getStatusBadge = (status: string) => {
-  const statusConfig = {
-    active: { label: "Active", variant: "success" as const },
-    invited: { label: "Invited", variant: "warning" as const },
-    pending: { label: "Pending", variant: "warning" as const },
-    suspended: { label: "Suspended", variant: "destructive" as const },
-    expired: { label: "Expired", variant: "destructive" as const },
-    canceled: { label: "Canceled", variant: "destructive" as const },
-  };
-
-  const config = statusConfig[status as keyof typeof statusConfig] || {
-    label: status,
-    variant: "outline" as const,
-  };
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+const getStatusBadge = (isActive: boolean) => {
+  const statusString = isActive ? "success" : "failed";
+  return (
+    <Badge variant="status" status={statusString}>
+      {isActive ? "Active" : "Inactive"}
+    </Badge>
+  );
 };
 
 // Skeleton Components
@@ -474,7 +486,10 @@ export default function TeamPage() {
         </div>
 
         {canInvite && (
-          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+          <Dialog
+            open={isInviteDialogOpen}
+            onOpenChange={setIsInviteDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="mr-2 h-4 w-4" />
@@ -582,7 +597,9 @@ export default function TeamPage() {
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
-                    {canEdit && <TableHead className="text-right">Actions</TableHead>}
+                    {canEdit && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -592,7 +609,10 @@ export default function TeamPage() {
                     ))
                   ) : filteredTeamMembers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={canEdit ? 5 : 4} className="h-24 text-center">
+                      <TableCell
+                        colSpan={canEdit ? 5 : 4}
+                        className="h-24 text-center"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                           <UserCog className="h-8 w-8" />
                           <p>No team members found</p>
@@ -624,11 +644,7 @@ export default function TeamPage() {
                           </div>
                         </TableCell>
                         <TableCell>{getRoleBadge(member.role)}</TableCell>
-                        <TableCell>
-                          {getStatusBadge(
-                            member.isActive ? "active" : "suspended"
-                          )}
-                        </TableCell>
+                        <TableCell>{getStatusBadge(member.isActive)}</TableCell>
                         <TableCell>{formatDate(member.createdAt)}</TableCell>
                         {canEdit && (
                           <TableCell className="text-right">
@@ -645,7 +661,9 @@ export default function TeamPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() => handleEditMember(member)}
-                                  disabled={getRoleName(member.role) === "owner"}
+                                  disabled={
+                                    getRoleName(member.role) === "owner"
+                                  }
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit Role
@@ -655,7 +673,9 @@ export default function TeamPage() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                       className="text-red-600 focus:text-red-600"
-                                      onClick={() => confirmRemoveMember(member)}
+                                      onClick={() =>
+                                        confirmRemoveMember(member)
+                                      }
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
                                       Remove Member
@@ -692,7 +712,9 @@ export default function TeamPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Invited By</TableHead>
                       <TableHead>Invited On</TableHead>
-                      {canInvite && <TableHead className="text-right">Actions</TableHead>}
+                      {canInvite && (
+                        <TableHead className="text-right">Actions</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -725,7 +747,9 @@ export default function TeamPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Invited By</TableHead>
                       <TableHead>Invited On</TableHead>
-                      {canInvite && <TableHead className="text-right">Actions</TableHead>}
+                      {canInvite && (
+                        <TableHead className="text-right">Actions</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -745,14 +769,18 @@ export default function TeamPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleResendInvite(invitation.id)}
+                                onClick={() =>
+                                  handleResendInvite(invitation.id)
+                                }
                               >
                                 Resend
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleCancelInvite(invitation.id)}
+                                onClick={() =>
+                                  handleCancelInvite(invitation.id)
+                                }
                               >
                                 Cancel
                               </Button>
@@ -840,7 +868,10 @@ export default function TeamPage() {
       </Dialog>
 
       {/* Remove Member Confirmation Dialog */}
-      <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+      <AlertDialog
+        open={isRemoveDialogOpen}
+        onOpenChange={setIsRemoveDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">

@@ -1,5 +1,3 @@
-
-
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +31,7 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -284,13 +283,17 @@ export default function ApiKeysPage() {
     });
   };
 
+
   const getStatusBadge = (isActive: boolean) => {
+    const statusString = isActive ? "success" : "failed";
     return (
-      <Badge variant={isActive ? "success" : "destructive"}>
+      <Badge variant="status" status={statusString}>
         {isActive ? "Active" : "Inactive"}
       </Badge>
     );
   };
+
+
 
   // Skeleton components
   const TableSkeleton = () => (
@@ -375,8 +378,8 @@ export default function ApiKeysPage() {
               <Button variant="outline" onClick={() => setIsCreating(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleCreate} 
+              <Button
+                onClick={handleCreate}
                 disabled={!newKeyName.trim() || creatingLoading}
               >
                 {creatingLoading ? (
@@ -431,57 +434,111 @@ export default function ApiKeysPage() {
                         {key.name}
                       </div>
                     </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                          {key.key}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() =>
-                            handleCopy(key.key, "API key copied to clipboard")
+                          {
+                            key.secret
+                              ? showSecret === key.id
+                                ? key.secret
+                                : "••••••••••••"
+                              : "••••••••••••" // Always show masked for list view
                           }
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                        </code>
+                        {key.secret ? ( // Only show buttons if secret is available (recently created/regenerated)
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() =>
+                                setShowSecret(
+                                  showSecret === key.id ? null : key.id
+                                )
+                              }
+                            >
+                              {showSecret === key.id ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() =>
+                                handleCopy(
+                                  key.secret!,
+                                  "Secret key copied to clipboard"
+                                )
+                              }
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          // Show regenerate button if secret is not available
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleRegenerate(key.id, true)}
+                            disabled={isRegenerating === key.id}
+                          >
+                            {isRegenerating === key.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                          {showSecret === key.id
-                            ? key.secret
-                            : "••••••••••••••••"}
+                          {key.secret
+                            ? showSecret === key.id
+                              ? key.secret
+                              : "••••••••••••"
+                            : "Not available"}
                         </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() =>
-                            setShowSecret(showSecret === key.id ? null : key.id)
-                          }
-                        >
-                          {showSecret === key.id ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() =>
-                            handleCopy(
-                              key.secret,
-                              "Secret key copied to clipboard"
-                            )
-                          }
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                        {key.secret && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() =>
+                                setShowSecret(
+                                  showSecret === key.id ? null : key.id
+                                )
+                              }
+                            >
+                              {showSecret === key.id ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() =>
+                                handleCopy(
+                                  key.secret!,
+                                  "Secret key copied to clipboard"
+                                )
+                              }
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(key.isActive)}</TableCell>
@@ -501,14 +558,6 @@ export default function ApiKeysPage() {
                           </DropdownMenuTrigger>
 
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => {
-                              setViewKey(key);
-                              setShowSecret(null); // Reset secret visibility when viewing details
-                            }}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-
                             <DropdownMenuItem
                               onClick={() =>
                                 toggleKeyStatus(key.id, !key.isActive)
@@ -583,6 +632,29 @@ export default function ApiKeysPage() {
           </DialogHeader>
           {viewKey && (
             <div className="space-y-6 py-4">
+              {/* Disclaimer Banner - Only show if secret is available */}
+              {viewKey.secret && (
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <AlertTriangle className="h-5 w-5 text-amber-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-amber-800">
+                        Important: Copy Your Secret Now
+                      </h3>
+                      <div className="mt-2 text-sm text-amber-700">
+                        <p>
+                          Your secret key will only be shown this one time. For
+                          security reasons, it cannot be retrieved again. Please
+                          copy and store it in a secure place.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>API Key Name</Label>
@@ -612,37 +684,63 @@ export default function ApiKeysPage() {
                   <Label>Secret Key</Label>
                   <div className="flex items-center gap-2">
                     <code className="relative rounded bg-muted px-2 py-1 font-mono text-sm">
-                      {showSecret === viewKey.id
-                        ? viewKey.secret
-                        : "••••••••••••••••"}
+                      {viewKey.secret
+                        ? showSecret === viewKey.id
+                          ? viewKey.secret
+                          : "••••••••••••"
+                        : "••••••••••••"}
                     </code>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() =>
-                        setShowSecret(
-                          showSecret === viewKey.id ? null : viewKey.id
-                        )
-                      }
-                    >
-                      {showSecret === viewKey.id ? (
-                        <EyeOff className="h-3 w-3" />
-                      ) : (
-                        <Eye className="h-3 w-3" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() =>
-                        handleCopy(viewKey.secret, "Secret key copied")
-                      }
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
+                    {viewKey.secret ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() =>
+                            setShowSecret(
+                              showSecret === viewKey.id ? null : viewKey.id
+                            )
+                          }
+                        >
+                          {showSecret === viewKey.id ? (
+                            <EyeOff className="h-3 w-3" />
+                          ) : (
+                            <Eye className="h-3 w-3" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() =>
+                            handleCopy(viewKey.secret!, "Secret key copied")
+                          }
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRegenerate(viewKey.id, true)}
+                        disabled={isRegenerating === viewKey.id}
+                      >
+                        {isRegenerating === viewKey.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                        )}
+                        Regenerate Secret
+                      </Button>
+                    )}
                   </div>
+                  {!viewKey.secret && (
+                    <p className="text-xs text-muted-foreground">
+                      Secret not available. You must regenerate to get a new
+                      secret key.
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Base64 Credentials (for API authentication)</Label>
@@ -667,25 +765,23 @@ export default function ApiKeysPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Use these credentials for Basic Auth: Authorization: Basic {getBase64Credentials(viewKey) ? "[above_credentials]" : "Not available"}
-                  </p> 
-                </div>
-                <div className="space-y-2">
-                  <Label>Created</Label>
-                  <p className="text-sm">{formatDate(viewKey.createdAt)}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Last Used</Label>
-                  <p className="text-sm">{formatDate(viewKey.lastUsedAt)}</p>
+                    Use these credentials for Basic Auth: Authorization: Basic{" "}
+                    {getBase64Credentials(viewKey)
+                      ? "[above_credentials]"
+                      : "Not available"}
+                  </p>
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setViewKey(null);
-              setShowSecret(null);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setViewKey(null);
+                setShowSecret(null);
+              }}
+            >
               Close
             </Button>
           </DialogFooter>

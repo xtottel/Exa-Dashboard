@@ -1,3 +1,4 @@
+// controllers/api-key/updateApiKey.controller.ts
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
@@ -32,7 +33,7 @@ export const updateApiKey = async (req: AuthRequest, res: Response) => {
 
     // Regenerate secret if requested
     if (regenerateSecret) {
-      const secret = crypto.randomBytes(32).toString('hex');
+      const secret = crypto.randomBytes(16).toString('hex'); // 32 chars
       newSecret = secret;
       updateData.secret = await hashPassword(secret);
     }

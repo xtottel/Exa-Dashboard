@@ -4,6 +4,7 @@ import { getApiKeys } from "./getApiKeys.controller";
 import { createApiKey } from "./createApiKey.controller";
 import { updateApiKey } from "./updateApiKey.controller";
 import { deleteApiKey } from "./deleteApiKey.controller";
+import { getApiKeySecret } from "./getApiKeySecret.controller";
 
 
 export const apiKeyController = {
@@ -11,4 +12,5 @@ export const apiKeyController = {
   createApiKey,
   updateApiKey,
   deleteApiKey,
+  getApiKeySecret,
 };
