@@ -4,7 +4,7 @@ import { Outfit } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "react-hot-toast";
 import { Toaster as Exatoast } from 'sonner'
-import Script from "next/script";
+//import Script from "next/script";
 
 
 
@@ -95,10 +95,10 @@ export default function RootLayout({
           <Toaster position="top-center" reverseOrder={false} />
 
           {/* Tidio live chat script */}
-         <Script
+         {/* <Script
           src="https://code.tidio.co/o93ckmtrvwarfdtztq2dbz0ghzunte8r.js"
           strategy="afterInteractive"
-        /> 
+        />  */}
       </body>
     </html>
   );

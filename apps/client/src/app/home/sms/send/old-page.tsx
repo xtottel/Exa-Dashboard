@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import {
@@ -22,8 +21,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-//import { Input } from "@/components/ui/input";
 
 type SenderId = {
   id: string;
@@ -41,28 +38,20 @@ type Template = {
   updatedAt: string;
 };
 
-type ContactGroup = {
-  id: string;
-  name: string;
-  recipients: number;
-};
-
 export default function SendSmsPage() {
   const [message, setMessage] = useState("");
   const [recipients, setRecipients] = useState<string[]>([]);
   const [newRecipient, setNewRecipient] = useState("");
   const [senderId, setSenderId] = useState("");
   const [templateId, setTemplateId] = useState("");
-  const [contactGroupId, setContactGroupId] = useState("");
   const [characterCount, setCharacterCount] = useState(0);
   const [messageParts, setMessageParts] = useState(1);
   const [isSending, setIsSending] = useState(false);
   const [senderIds, setSenderIds] = useState<SenderId[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [contactGroups, setContactGroups] = useState<ContactGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch data from API
+  // Fetch sender IDs and templates from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -75,33 +64,32 @@ export default function SendSmsPage() {
         }
 
         // Fetch sender IDs
-        const [senderIdsResponse, templatesResponse, groupsResponse] = await Promise.all([
-          fetch("/api/sender-ids", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/templates", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/contacts/groups", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-        ]);
+        const senderIdsResponse = await fetch("/api/sender-ids", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (senderIdsResponse.ok) {
           const senderIdsData = await senderIdsResponse.json();
           setSenderIds(senderIdsData.data || []);
+        } else {
+          console.error("Failed to fetch sender IDs");
         }
+
+        // Fetch templates
+        const templatesResponse = await fetch("/api/templates", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (templatesResponse.ok) {
           const templatesData = await templatesResponse.json();
           setTemplates(templatesData.data || []);
+        } else {
+          console.error("Failed to fetch templates");
         }
-
-        if (groupsResponse.ok) {
-          const groupsData = await groupsResponse.json();
-          setContactGroups(groupsData.data || []);
-        }
-
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load data");
@@ -121,35 +109,13 @@ export default function SendSmsPage() {
         .map(r => r.trim())
         .filter(r => r.length > 0 && /^[0-9+]+$/.test(r));
       
+      // Remove duplicates and empty entries
       const uniqueRecipients = [...new Set(parsedRecipients)];
       setRecipients(uniqueRecipients);
     } else {
       setRecipients([]);
     }
   }, [newRecipient]);
-
-  // Handle contact group selection
-  const handleContactGroupChange = async (groupId: string) => {
-    setContactGroupId(groupId);
-    if (groupId) {
-      try {
-        const token = localStorage.getItem("bearerToken");
-        const response = await fetch(`/api/contacts/groups/${groupId}/contacts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const groupRecipients = data.data.map((contact: any) => contact.phone).filter(Boolean);
-          setNewRecipient(groupRecipients.join("\n"));
-        }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        toast.error("Failed to load group contacts");
-      }
-    }
-  };
 
   const handleTemplateChange = (value: string) => {
     const selectedTemplate = templates.find((t) => t.id === value);
@@ -163,6 +129,7 @@ export default function SendSmsPage() {
   const updateMessageStats = (text: string) => {
     const count = text.length;
     setCharacterCount(count);
+    // SMS are 160 chars per part for GSM charset, 70 for Unicode
     const isUnicode = /[^\x00-\x7F]/.test(text);
     const charsPerPart = isUnicode ? 70 : 160;
     setMessageParts(Math.ceil(count / charsPerPart));
@@ -185,6 +152,7 @@ export default function SendSmsPage() {
         return;
       }
 
+      // Send to each recipient
       const sendPromises = recipients.map(recipient => {
         return fetch("/api/sms/send", {
           method: "POST",
@@ -201,10 +169,12 @@ export default function SendSmsPage() {
         });
       });
 
+      // Show progress toast
       const toastId = toast.loading(`Sending ${messageParts * recipients.length} message parts to ${recipients.length} recipients...`);
 
       const responses = await Promise.all(sendPromises);
       
+      // Count successful and failed sends
       let successCount = 0;
       let failedCount = 0;
       
@@ -216,6 +186,7 @@ export default function SendSmsPage() {
         }
       }
 
+      // Update toast with result
       if (failedCount === 0) {
         toast.success(`Successfully sent ${successCount * messageParts} message parts to ${recipients.length} recipients`, {
           id: toastId,
@@ -279,58 +250,9 @@ export default function SendSmsPage() {
             Compose and send messages to your recipients
           </p>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-          {/* Main compose area skeleton */}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-24 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-32 w-full" />
-                <div className="flex justify-between">
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sidebar options skeleton */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-40" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-40" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-32 w-full" />
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-full" />
-              </CardFooter>
-            </Card>
-          </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Loading data...</span>
         </div>
       </div>
     );
@@ -357,36 +279,17 @@ export default function SendSmsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="contact-group">Contact Group</Label>
-                <Select value={contactGroupId} onValueChange={handleContactGroupChange}>
-                  <SelectTrigger id="contact-group">
-                    <SelectValue placeholder="Select a contact group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contactGroups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
-                        <div className="flex items-center gap-2">
-                          {group.name}
-                          <Badge variant="outline" className="ml-2">
-                            {group.recipients} contacts
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="recipients">Recipients</Label>
-                <Textarea
-                  id="recipients"
-                  placeholder="Enter phone numbers separated by commas, spaces, or new lines (e.g. 0244123456, 0551196764)"
-                  value={newRecipient}
-                  rows={4}
-                  className="resize-none"
-                  onChange={(e) => setNewRecipient(e.target.value)}
-                />
+                <div className="flex gap-2">
+                  <Textarea
+                    id="recipients"
+                    placeholder="Enter phone numbers separated by commas, spaces, or new lines (e.g. 0244123456, 0551196764)"
+                    value={newRecipient}
+                    rows={4}
+                    className="resize-none"
+                    onChange={(e) => setNewRecipient(e.target.value)}
+                  />
+                </div>
                 {recipients.length > 0 && (
                   <div className="text-sm text-muted-foreground">
                     {recipients.length} recipient{recipients.length !== 1 ? "s" : ""} detected
@@ -440,6 +343,22 @@ export default function SendSmsPage() {
                             </div>
                           </SelectItem>
                         ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contact">Contact</Label>
+                  <Select value={templateId} onValueChange={handleTemplateChange}>
+                    <SelectTrigger id="template">
+                      <SelectValue placeholder="Select a template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((tpl) => (
+                        <SelectItem key={tpl.id} value={tpl.id}>
+                          {tpl.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -509,3 +428,4 @@ export default function SendSmsPage() {
     </div>
   );
 }
+

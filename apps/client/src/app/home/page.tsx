@@ -178,7 +178,7 @@ export default function DashboardHome() {
         volumeResponse.ok ? volumeResponse.json() : Promise.resolve({ data: [] }),
       ]);
 
-      setSmsStats(statsData.data);
+      setSmsStats(statsData.data); 
       setSmsHistory(historyData.data);
       setNetworkDistribution(networkData.data || []);
       setMessageVolumeData(volumeData.data || []);

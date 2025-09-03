@@ -2,6 +2,7 @@ export { authController } from './auth';
 export { userController } from './user';
 export { businessController } from './business'; // NEW: Export business controller
 export { apiKeyController } from './api-key'; // NEW: Export API key controller
+export { smsController } from './sms';
 
 export * from './sms';
 export * from './otp';

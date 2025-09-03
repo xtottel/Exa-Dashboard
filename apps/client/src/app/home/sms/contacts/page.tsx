@@ -10,7 +10,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Plus, Users, MoreVertical, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Users, MoreVertical, Eye, Edit, Trash2, Loader2, Search } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ContactGroup = {
   id: string;
@@ -134,7 +135,7 @@ export default function ContactsPage() {
         });
         setNewGroup({ name: "", description: "" });
         setIsCreateModalOpen(false);
-        fetchGroups(); // Refresh the list
+        fetchGroups();
       } else {
         toast({
           title: "Error",
@@ -170,7 +171,7 @@ export default function ContactsPage() {
           title: "Success",
           description: "Contact group deleted successfully",
         });
-        fetchGroups(); // Refresh the list
+        fetchGroups();
       } else {
         toast({
           title: "Error",
@@ -194,7 +195,6 @@ export default function ContactsPage() {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    // Debounce the search
     setTimeout(() => {
       fetchGroups(1, e.target.value);
     }, 300);
@@ -225,12 +225,15 @@ export default function ContactsPage() {
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search groups..."
-          value={search}
-          onChange={handleSearch}
-          className="max-w-sm"
-        />
+        <div className="relative max-w-sm w-full">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search groups..."
+            value={search}
+            onChange={handleSearch}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {/* Create Group Modal */}
@@ -305,15 +308,42 @@ export default function ContactsPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                  </TableCell>
-                </TableRow>
+                <>
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <TableRow key={row}>
+                      <TableCell>
+                        <Skeleton className="h-6 w-48" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-8 w-8 ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
               ) : groups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No contact groups found
+                  <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">No contact groups found</p>
+                    <p className="text-sm mt-2">
+                      {search ? "Try a different search term" : "Create your first contact group to get started"}
+                    </p>
+                    {!search && (
+                      <Button 
+                        onClick={() => setIsCreateModalOpen(true)} 
+                        className="mt-4"
+                        size="sm"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Group
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -373,30 +403,32 @@ export default function ContactsPage() {
             </TableBody>
           </Table>
         </CardHeader>
-        <CardFooter className="flex items-center justify-between border-t px-6 py-4">
-          <div className="text-sm text-muted-foreground">
-            Showing <strong>{(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{" "}
-            <strong>{pagination.total}</strong> Groups
-          </div>
-          <div className="space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-            >
-              Previous
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.pages}
-            >
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+        {!loading && groups.length > 0 && (
+          <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground">
+              Showing <strong>{(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{" "}
+              <strong>{pagination.total}</strong> Groups
+            </div>
+            <div className="space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+              >
+                Previous
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.pages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

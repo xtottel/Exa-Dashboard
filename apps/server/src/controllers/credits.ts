@@ -1,5 +1,7 @@
+
+// controllers/credits.ts
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AccountType } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
 
 const prisma = new PrismaClient();
@@ -8,16 +10,37 @@ export const getCreditBalance = async (req: AuthRequest, res: Response) => {
   try {
     const businessId = req.user.businessId;
 
-    const latestTransaction = await prisma.creditTransaction.findFirst({
+    // Get all account balances
+    const accounts = await prisma.businessAccount.findMany({
       where: { businessId },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { type: 'asc' }
     });
 
-    const balance = latestTransaction?.balance || 0;
+    // Ensure all account types exist
+    const accountTypes = Object.values(AccountType);
+    const balances: Record<string, number> = {};
+
+    for (const type of accountTypes) {
+      let account = accounts.find(a => a.type === type);
+      
+      if (!account) {
+        // Create account if it doesn't exist
+        account = await prisma.businessAccount.create({
+          data: {
+            businessId,
+            type,
+            balance: 0,
+            currency: 'GHS'
+          }
+        });
+      }
+      
+      balances[type] = account.balance;
+    }
 
     res.status(200).json({
       success: true,
-      data: { balance }
+      data: { balances }
     });
 
   } catch (error) {
@@ -31,7 +54,7 @@ export const getCreditBalance = async (req: AuthRequest, res: Response) => {
 
 export const purchaseCredits = async (req: AuthRequest, res: Response) => {
   try {
-    const { amount, paymentMethod } = req.body;
+    const { amount, paymentMethod, accountType = AccountType.SMS } = req.body;
     const businessId = req.user.businessId;
 
     if (!amount || amount <= 0) {
@@ -41,23 +64,44 @@ export const purchaseCredits = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get current balance
-    const latestTransaction = await prisma.creditTransaction.findFirst({
-      where: { businessId },
-      orderBy: { createdAt: 'desc' }
+    // Get or create account
+    let account = await prisma.businessAccount.findUnique({
+      where: {
+        businessId_type: {
+          businessId,
+          type: accountType
+        }
+      }
     });
 
-    const currentBalance = latestTransaction?.balance || 0;
-    const newBalance = currentBalance + amount;
+    if (!account) {
+      account = await prisma.businessAccount.create({
+        data: {
+          businessId,
+          type: accountType,
+          balance: 0,
+          currency: 'GHS'
+        }
+      });
+    }
+
+    const newBalance = account.balance + amount;
+
+    // Update account balance
+    await prisma.businessAccount.update({
+      where: { id: account.id },
+      data: { balance: newBalance }
+    });
 
     // Create credit transaction
     const transaction = await prisma.creditTransaction.create({
       data: {
         businessId,
-        type: 'purchase',
+        accountId: account.id,
+        type: 'PURCHASE',
         amount,
         balance: newBalance,
-        description: `Credit purchase via ${paymentMethod || 'unknown'}`
+        description: `Credit purchase via ${paymentMethod || 'unknown'} to ${accountType} account`
       }
     });
 
@@ -71,8 +115,8 @@ export const purchaseCredits = async (req: AuthRequest, res: Response) => {
         date: new Date(),
         amount,
         status: 'paid',
-        type: 'SMS Credits',
-        description: `Purchase of ${amount} SMS credits`
+        type: `${accountType} Credits`,
+        description: `Purchase of ${amount} ${accountType} credits`
       }
     });
 
@@ -82,7 +126,8 @@ export const purchaseCredits = async (req: AuthRequest, res: Response) => {
       data: {
         transaction,
         invoice,
-        newBalance
+        newBalance,
+        accountType
       }
     });
 
@@ -98,7 +143,7 @@ export const purchaseCredits = async (req: AuthRequest, res: Response) => {
 export const getCreditHistory = async (req: AuthRequest, res: Response) => {
   try {
     const businessId = req.user.businessId;
-    const { page = 1, limit = 10, type } = req.query;
+    const { page = 1, limit = 10, type, accountType } = req.query;
 
     const where: any = { businessId };
     
@@ -106,9 +151,30 @@ export const getCreditHistory = async (req: AuthRequest, res: Response) => {
       where.type = type;
     }
 
+    if (accountType && accountType !== 'all') {
+      // Find account ID for the specified type
+      const account = await prisma.businessAccount.findFirst({
+        where: {
+          businessId,
+          type: accountType as AccountType
+        }
+      });
+      
+      if (account) {
+        where.accountId = account.id;
+      }
+    }
+
     const [transactions, total] = await Promise.all([
       prisma.creditTransaction.findMany({
         where,
+        include: {
+          account: {
+            select: {
+              type: true
+            }
+          }
+        },
         orderBy: { createdAt: 'desc' },
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit)
@@ -135,6 +201,120 @@ export const getCreditHistory = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+export const transferCredits = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fromAccountType, toAccountType, amount, description } = req.body;
+    const businessId = req.user.businessId;
+
+    if (!fromAccountType || !toAccountType || !amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid fromAccountType, toAccountType, and amount are required'
+      });
+    }
+
+    if (fromAccountType === toAccountType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot transfer to the same account type'
+      });
+    }
+
+    // Get both accounts
+    const fromAccount = await prisma.businessAccount.findUnique({
+      where: {
+        businessId_type: {
+          businessId,
+          type: fromAccountType
+        }
+      }
+    });
+
+    const toAccount = await prisma.businessAccount.findUnique({
+      where: {
+        businessId_type: {
+          businessId,
+          type: toAccountType
+        }
+      }
+    });
+
+    if (!fromAccount || fromAccount.balance < amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance in source account'
+      });
+    }
+
+    if (!toAccount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Destination account not found'
+      });
+    }
+
+    // Perform transfer in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update from account
+      const updatedFromAccount = await tx.businessAccount.update({
+        where: { id: fromAccount.id },
+        data: { balance: fromAccount.balance - amount }
+      });
+
+      // Update to account
+      const updatedToAccount = await tx.businessAccount.update({
+        where: { id: toAccount.id },
+        data: { balance: toAccount.balance + amount }
+      });
+
+      // Create transaction records
+      const fromTransaction = await tx.creditTransaction.create({
+        data: {
+          businessId,
+          accountId: fromAccount.id,
+          type: 'TRANSFER_OUT',
+          amount: -amount,
+          balance: updatedFromAccount.balance,
+          description: description || `Transfer to ${toAccountType} account`
+        }
+      });
+
+      const toTransaction = await tx.creditTransaction.create({
+        data: {
+          businessId,
+          accountId: toAccount.id,
+          type: 'TRANSFER_IN',
+          amount,
+          balance: updatedToAccount.balance,
+          description: description || `Transfer from ${fromAccountType} account`
+        }
+      });
+
+      return {
+        fromAccount: updatedFromAccount,
+        toAccount: updatedToAccount,
+        fromTransaction,
+        toTransaction
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Credits transferred successfully',
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Transfer credits error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to transfer credits'
+    });
+  }
+};
+
+
 
 export const getInvoices = async (req: AuthRequest, res: Response) => {
   try {

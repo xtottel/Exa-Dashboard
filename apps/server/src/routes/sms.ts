@@ -1,26 +1,29 @@
+
+// routes/sms.ts
 import { Router } from 'express';
 import { authenticateToken } from '@/middleware/auth';
-import {
-  sendSMS,
-  getSMSHistory,
-  getSMSDetails,
-  getSMSStats
-} from '@/controllers/sms';
+import { smsController } from '@/controllers/sms';
 
 const router = Router();
 
-router.use(authenticateToken);
+//router.use(authenticateToken);
 
 // Send SMS
-router.post('/send', sendSMS);
+router.post('/send', authenticateToken, smsController.sendSMS);
 
-// Get SMS history with pagination and filters
-router.get('/history', getSMSHistory);
+// Bulk Send SMS
+router.post('/bulk-send', authenticateToken, smsController.bulkSendSMS);
+
+// Get SMS history
+router.get('/history', authenticateToken, smsController.getSMSHistory);
 
 // Get specific SMS details
-router.get('/:id', getSMSDetails);
+router.get('/:id', authenticateToken, smsController.getSMSDetails);
 
 // Get SMS statistics
-router.get('/stats/overview', getSMSStats);
+router.get('/stats/overview', authenticateToken, smsController.getSMSStats);
+
+// Get SMS analytics
+router.get('/analytics/overview', authenticateToken, smsController.getSMSAnalytics);
 
 export { router as smsRoutes };
