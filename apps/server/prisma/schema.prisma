@@ -374,10 +374,26 @@ model Contact {
 
 // Add to your existing schema.prisma
 
+
 enum AccountType {
   SMS
-  SERVICE
-  GENERAL
+  WALLET
+}
+
+model BusinessAccount {
+  id           String              @id @default(cuid())
+  businessId   String
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type         AccountType         @default(WALLET) // Changed default to WALLET
+  balance      Float               @default(0)
+  currency     String              @default("GHS")
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  transactions CreditTransaction[]
+
+  @@unique([businessId, type])
+  @@map("business_accounts")
 }
 
 model Business {
@@ -416,21 +432,6 @@ model Business {
   @@map("businesses")
 }
 
-model BusinessAccount {
-  id           String              @id @default(cuid())
-  businessId   String
-  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  type         AccountType         @default(GENERAL)
-  balance      Float               @default(0)
-  currency     String              @default("GHS")
-  isActive     Boolean             @default(true)
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  transactions CreditTransaction[]
-
-  @@unique([businessId, type])
-  @@map("business_accounts")
-}
 
 // Also update the CreditTransaction model relation
 model CreditTransaction {

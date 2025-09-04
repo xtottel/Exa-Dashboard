@@ -1,8 +1,8 @@
 // controllers/sms/bulkSendSMS.controller.ts
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { AccountType, PrismaClient } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
-import { parentProviderService } from '@/services/parentProvider.service';
+import { kairosServerService } from '@/services/KairosServer.service';
 import { creditService } from '@/services/credit.service';
 
 const prisma = new PrismaClient();
@@ -34,7 +34,7 @@ export const bulkSendSMS = async (req: AuthRequest, res: Response) => {
     }, 0);
 
     // Check credit balance
-    const hasSufficientCredits = await creditService.hasSufficientCredits(businessId, totalCost);
+    const hasSufficientCredits = await creditService.hasSufficientCredits(businessId, AccountType.SMS, totalCost);
     if (!hasSufficientCredits) {
       return res.status(400).json({
         success: false,
@@ -55,7 +55,7 @@ export const bulkSendSMS = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // Process in background (you might want to use a queue system like Bull)
+    // Process in background
     processBulkSendInBackground(bulkSend.id, recipients, message, validSenderId.name);
 
     res.status(202).json({
@@ -82,36 +82,48 @@ async function processBulkSendInBackground(bulkSendId: string, recipients: strin
     let successful = 0;
     let failed = 0;
 
-    for (const recipient of recipients) {
-      try {
+    // Prepare messages for Kairos bulk send
+    const kairosMessages = recipients
+      .filter(recipient => {
         if (!isValidGhanaPhoneNumber(recipient)) {
           failed++;
-          continue;
+          return false;
         }
-
-        const messageId = generateMessageId();
+        return true;
+      })
+      .map(recipient => {
         const normalizedPhone = normalizePhoneNumber(recipient);
-        const cost = calculateMessageCost(message);
+        const messageId = generateMessageId();
 
-        // Send to parent provider
-        const providerResponse = await parentProviderService.sendSMS({
+        return {
           recipient: normalizedPhone,
           message,
           senderId,
           messageId
-        });
+        };
+      });
+
+    // Send bulk messages to Kairos
+    const providerResponses = await kairosServerService.sendBulkSMS(kairosMessages);
+
+    for (let i = 0; i < kairosMessages.length; i++) {
+      const msg = kairosMessages[i];
+      const providerResponse = providerResponses[i];
+
+      try {
+        const cost = calculateMessageCost(message);
 
         // Create SMS record
         await prisma.smsMessage.create({
           data: {
             businessId: (await prisma.bulkSend.findUnique({ where: { id: bulkSendId } }))!.businessId,
-            recipient: normalizedPhone,
-            message,
+            recipient: msg.recipient,
+            message: msg.message,
             senderId: (await prisma.senderId.findFirst({ where: { name: senderId } }))!.id,
             type: 'BULK',
             status: providerResponse.success ? 'SENT' : 'FAILED',
             cost,
-            messageId,
+            messageId: msg.messageId,
             externalId: providerResponse.externalId,
             bulkSendId
           }
@@ -119,12 +131,21 @@ async function processBulkSendInBackground(bulkSendId: string, recipients: strin
 
         if (providerResponse.success) {
           successful++;
+          
+          // Deduct credits for successful sends
+          await creditService.deductCredits({
+            businessId: (await prisma.bulkSend.findUnique({ where: { id: bulkSendId } }))!.businessId,
+            accountType: AccountType.SMS,
+            amount: cost,
+            description: `Bulk SMS to ${msg.recipient} using ${senderId}`,
+            referenceId: bulkSendId
+          });
         } else {
           failed++;
         }
 
       } catch (error) {
-        console.error(`Failed to send to ${recipient}:`, error);
+        console.error(`Failed to process message for ${msg.recipient}:`, error);
         failed++;
       }
     }
@@ -146,4 +167,43 @@ async function processBulkSendInBackground(bulkSendId: string, recipients: strin
       data: { status: 'FAILED' }
     });
   }
+}
+
+// Helper functions (same as in sendSMS.controller.ts)
+function isValidGhanaPhoneNumber(phone: string): boolean {
+  const ghanaPhoneRegex = /^(?:\+233|0)[234][0-9]{8}$/;
+  return ghanaPhoneRegex.test(phone);
+}
+
+function normalizePhoneNumber(phone: string): string {
+  return phone.replace(/^0/, "233").replace(/^\+233/, "233");
+}
+
+function calculateMessageCost(message: string): number {
+  const segmentLength = 160;
+  const segments = Math.ceil(message.length / segmentLength);
+  return segments * 0.03;
+}
+
+function generateMessageId(): string {
+  return `kairos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+async function validateSenderId(businessId: string, senderId: string | undefined) {
+  if (!senderId) {
+    return prisma.senderId.findFirst({
+      where: {
+        businessId,
+        status: "APPROVED",
+      },
+    });
+  }
+
+  return prisma.senderId.findFirst({
+    where: {
+      id: senderId,
+      businessId,
+      status: "APPROVED",
+    },
+  });
 }

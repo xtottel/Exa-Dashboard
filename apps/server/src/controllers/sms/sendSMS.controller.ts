@@ -1,17 +1,21 @@
+
 // controllers/sms/sendSMS.controller.ts
 import { Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, AccountType } from "@prisma/client";
 import { AuthRequest } from "@/middleware/auth";
-import { parentProviderService } from "@/services/parentProvider.service";
+import { kairosServerService } from "@/services/KairosServer.service";
 import { creditService } from "@/services/credit.service";
-import { AccountType } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+
+
 
 export const sendSMS = async (req: AuthRequest, res: Response) => {
   try {
     const { recipient, message, senderId, templateId } = req.body;
     const businessId = req.user.businessId;
+    
 
     // Validate input
     if (!recipient || !message) {
@@ -25,8 +29,7 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
     if (!isValidGhanaPhoneNumber(recipient)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Invalid Ghana phone number format. Use format: 0244123456 or +233244123456",
+        message: "Invalid Ghana phone number format. Use format: 0244123456 or +233244123456",
       });
     }
 
@@ -39,17 +42,8 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Calculate cost based on message segments
+    // Calculate cost based on message segments (Kairos charges per segment)
     const cost = calculateMessageCost(message);
-
-    // In the sendSMS function, update the credit checks:
-
-    // Check credit balance in SMS account
-    const hasSufficientCredits = await creditService.hasSufficientCredits(
-      businessId,
-      AccountType.SMS,
-      cost
-    );
 
     // Create SMS record with pending status
     const normalizedPhone = normalizePhoneNumber(recipient);
@@ -69,9 +63,39 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    // Check credit balance in SMS account
+    const hasSufficientCredits = await creditService.hasSufficientCredits(
+      businessId,
+      AccountType.SMS,
+      cost
+    );
+  
+
+    if (!hasSufficientCredits) {
+      // Update SMS status to reflect insufficient credits
+      await prisma.smsMessage.update({
+        where: { id: smsRecord.id },
+        data: {
+          status: "FAILED_INSUFFICIENT_CREDITS",
+          errorMessage: "Insufficient SMS credits",
+        },
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient SMS credits",
+        data: {
+          id: smsRecord.id,
+          status: "FAILED_INSUFFICIENT_CREDITS",
+          cost,
+          requiredCredits: cost,
+        },
+      });
+    }
+
     try {
-      // Send to Nalo provider
-      const providerResponse = await parentProviderService.sendSMS({
+      // Send to Kairos provider
+      const providerResponse = await kairosServerService.sendSMS({
         recipient: normalizedPhone,
         message,
         senderId: validSenderId.name,
@@ -87,14 +111,14 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
         shouldDeductCredits = true;
       } else if (
         providerResponse.errorCode === "1025" ||
-        providerResponse.errorCode === "1026"
+        providerResponse.errorCode === "403"
       ) {
         // Insufficient credit at provider level - don't deduct our credits
         finalStatus = "FAILED_INSUFFICIENT_PROVIDER_CREDIT";
         shouldDeductCredits = false;
-      } else if (providerResponse.errorCode === "1706") {
-        // Invalid destination - don't deduct credits for bad numbers
-        finalStatus = "FAILED_INVALID_DESTINATION";
+      } else if (providerResponse.errorCode === "400") {
+        // Invalid parameters - don't deduct credits for bad requests
+        finalStatus = "FAILED_INVALID_PARAMETERS";
         shouldDeductCredits = false;
       } else {
         // Other errors - deduct credits as the attempt was made
@@ -113,14 +137,17 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
         },
       });
 
-      // After successful send, deduct from SMS account
-      await creditService.deductCredits({
-        businessId,
-        accountType: AccountType.SMS,
-        amount: cost,
-        description: `SMS to ${recipient} using ${validSenderId.name}`,
-        referenceId: smsRecord.id,
-      });
+      // Deduct credits only if we should
+      if (shouldDeductCredits) {
+        await creditService.deductCredits({
+          businessId,
+          accountType: AccountType.SMS,
+          amount: cost,
+          description: `SMS to ${recipient} using ${validSenderId.name}`,
+          referenceId: smsRecord.id,
+        });
+      }
+
       // Prepare response based on outcome
       if (providerResponse.success) {
         res.status(201).json({
@@ -160,7 +187,7 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
         },
       });
 
-      console.error("Nalo provider error:", providerError);
+      console.error("Kairos provider error:", providerError);
       res.status(502).json({
         success: false,
         message: "Failed to send SMS through provider. Please try again.",
@@ -175,26 +202,26 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Helper functions (same as before)
+// Helper functions
 function isValidGhanaPhoneNumber(phone: string): boolean {
   const ghanaPhoneRegex = /^(?:\+233|0)[234][0-9]{8}$/;
   return ghanaPhoneRegex.test(phone);
 }
 
 function normalizePhoneNumber(phone: string): string {
-  // Convert to Nalo format (233XXXXXXXXX)
+  // Convert to Kairos format (233XXXXXXXXX)
   return phone.replace(/^0/, "233").replace(/^\+233/, "233");
 }
 
 function calculateMessageCost(message: string): number {
   const segmentLength = 160;
   const segments = Math.ceil(message.length / segmentLength);
-  // Adjust this based on your actual cost per segment from Nalo
-  return segments * 0.05;
+  // Kairos charges approximately 0.03 GHS per segment
+  return segments * 0.03;
 }
 
 function generateMessageId(): string {
-  return `exa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `kairos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 async function validateSenderId(

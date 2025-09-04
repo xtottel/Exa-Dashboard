@@ -156,11 +156,10 @@ export const signup = async (req: Request, res: Response) => {
         });
 
         // CREATE WELCOME CREDITS FOR ALL ACCOUNT TYPES
-        const accountTypes = [AccountType.SMS, AccountType.SERVICE, AccountType.GENERAL];
+        const accountTypes = [AccountType.SMS,  AccountType.WALLET];
         const welcomeCredits = {
           [AccountType.SMS]: 50,      // 50 free SMS credits
-          [AccountType.SERVICE]: 10, // $10 service credit
-          [AccountType.GENERAL]: 20  // $20 general credit
+          [AccountType.WALLET]: 10, // 10 service credit
         };
 
         for (const type of accountTypes) {

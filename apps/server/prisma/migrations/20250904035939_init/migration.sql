@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "public"."AccountType" AS ENUM ('SMS', 'WALLET');
+
 -- CreateTable
 CREATE TABLE "public"."accounts" (
     "id" TEXT NOT NULL,
@@ -71,26 +74,6 @@ CREATE TABLE "public"."verification_tokens" (
     "userId" TEXT,
 
     CONSTRAINT "verification_tokens_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."businesses" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "address" TEXT,
-    "businessType" TEXT,
-    "businessSector" TEXT,
-    "description" TEXT,
-    "email" TEXT,
-    "website" TEXT,
-    "logo" TEXT,
-    "businessCertificate" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "businesses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -254,10 +237,33 @@ CREATE TABLE "public"."sms_messages" (
     "cost" DOUBLE PRECISION NOT NULL,
     "senderId" TEXT,
     "templateId" TEXT,
+    "messageId" TEXT,
+    "externalId" TEXT,
+    "errorCode" TEXT,
+    "errorMessage" TEXT,
+    "bulkSendId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "sms_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."bulk_sends" (
+    "id" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
+    "totalRecipients" INTEGER NOT NULL,
+    "successfulCount" INTEGER NOT NULL DEFAULT 0,
+    "failedCount" INTEGER NOT NULL DEFAULT 0,
+    "message" TEXT NOT NULL,
+    "senderId" TEXT,
+    "templateId" TEXT,
+    "totalCost" DOUBLE PRECISION NOT NULL,
+    "status" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "bulk_sends_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -305,13 +311,49 @@ CREATE TABLE "public"."contacts" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."business_accounts" (
+    "id" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
+    "type" "public"."AccountType" NOT NULL DEFAULT 'WALLET',
+    "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "currency" TEXT NOT NULL DEFAULT 'GHS',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "business_accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."businesses" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "address" TEXT,
+    "businessType" TEXT,
+    "businessSector" TEXT,
+    "description" TEXT,
+    "email" TEXT,
+    "website" TEXT,
+    "logo" TEXT,
+    "businessCertificate" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "businesses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."credit_transactions" (
     "id" TEXT NOT NULL,
     "businessId" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL,
     "description" TEXT,
+    "referenceId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "credit_transactions_pkey" PRIMARY KEY ("id")
@@ -408,9 +450,6 @@ CREATE UNIQUE INDEX "verification_tokens_token_key" ON "public"."verification_to
 CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "public"."verification_tokens"("identifier", "token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "businesses_name_key" ON "public"."businesses"("name");
-
--- CreateIndex
 CREATE UNIQUE INDEX "roles_name_key" ON "public"."roles"("name");
 
 -- CreateIndex
@@ -468,6 +507,18 @@ CREATE INDEX "sms_messages_recipient_idx" ON "public"."sms_messages"("recipient"
 CREATE INDEX "sms_messages_createdAt_idx" ON "public"."sms_messages"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "sms_messages_messageId_idx" ON "public"."sms_messages"("messageId");
+
+-- CreateIndex
+CREATE INDEX "sms_messages_externalId_idx" ON "public"."sms_messages"("externalId");
+
+-- CreateIndex
+CREATE INDEX "bulk_sends_businessId_status_idx" ON "public"."bulk_sends"("businessId", "status");
+
+-- CreateIndex
+CREATE INDEX "bulk_sends_createdAt_idx" ON "public"."bulk_sends"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "otp_messages_businessId_status_idx" ON "public"."otp_messages"("businessId", "status");
 
 -- CreateIndex
@@ -486,7 +537,13 @@ CREATE INDEX "contacts_groupId_idx" ON "public"."contacts"("groupId");
 CREATE INDEX "contacts_phone_idx" ON "public"."contacts"("phone");
 
 -- CreateIndex
-CREATE INDEX "credit_transactions_businessId_createdAt_idx" ON "public"."credit_transactions"("businessId", "createdAt");
+CREATE UNIQUE INDEX "business_accounts_businessId_type_key" ON "public"."business_accounts"("businessId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "businesses_name_key" ON "public"."businesses"("name");
+
+-- CreateIndex
+CREATE INDEX "credit_transactions_businessId_accountId_createdAt_idx" ON "public"."credit_transactions"("businessId", "accountId", "createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "invoices_invoiceId_key" ON "public"."invoices"("invoiceId");
@@ -567,6 +624,18 @@ ALTER TABLE "public"."sms_messages" ADD CONSTRAINT "sms_messages_senderId_fkey" 
 ALTER TABLE "public"."sms_messages" ADD CONSTRAINT "sms_messages_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "public"."templates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."sms_messages" ADD CONSTRAINT "sms_messages_bulkSendId_fkey" FOREIGN KEY ("bulkSendId") REFERENCES "public"."bulk_sends"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."bulk_sends" ADD CONSTRAINT "bulk_sends_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "public"."businesses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."bulk_sends" ADD CONSTRAINT "bulk_sends_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "public"."sender_ids"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."bulk_sends" ADD CONSTRAINT "bulk_sends_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "public"."templates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."otp_messages" ADD CONSTRAINT "otp_messages_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "public"."businesses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -579,7 +648,13 @@ ALTER TABLE "public"."contact_groups" ADD CONSTRAINT "contact_groups_businessId_
 ALTER TABLE "public"."contacts" ADD CONSTRAINT "contacts_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."contact_groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."business_accounts" ADD CONSTRAINT "business_accounts_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "public"."businesses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."credit_transactions" ADD CONSTRAINT "credit_transactions_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "public"."businesses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."credit_transactions" ADD CONSTRAINT "credit_transactions_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "public"."business_accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."invoices" ADD CONSTRAINT "invoices_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "public"."businesses"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,4 +1,3 @@
-
 "use client";
 import {
   Card,
@@ -92,8 +91,12 @@ export default function DashboardHome() {
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const [smsStats, setSmsStats] = useState<SMSStats | null>(null);
   const [smsHistory, setSmsHistory] = useState<SMSHistory[]>([]);
-  const [networkDistribution, setNetworkDistribution] = useState<NetworkDistribution[]>([]);
-  const [messageVolumeData, setMessageVolumeData] = useState<MessageVolumeData[]>([]);
+  const [networkDistribution, setNetworkDistribution] = useState<
+    NetworkDistribution[]
+  >([]);
+  const [messageVolumeData, setMessageVolumeData] = useState<
+    MessageVolumeData[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -129,14 +132,14 @@ export default function DashboardHome() {
     updateDateTime();
     const interval = setInterval(updateDateTime, 60000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("bearerToken");
-      
+
       if (!token) {
         toast.error("Please login again");
         router.push("/login");
@@ -144,7 +147,13 @@ export default function DashboardHome() {
       }
 
       // Fetch all data in parallel
-      const [statsResponse, historyResponse, networkResponse, volumeResponse] = await Promise.all([
+      const [
+        statsResponse,
+        historyResponse,
+        networkResponse,
+        volumeResponse,
+        creditsResponse,
+      ] = await Promise.all([
         fetch("/api/sms/stats/overview", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -165,24 +174,45 @@ export default function DashboardHome() {
             Authorization: `Bearer ${token}`,
           },
         }),
+        fetch("/api/credits/balance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
 
-      if (!statsResponse.ok || !historyResponse.ok) {
+      if (!statsResponse.ok || !historyResponse.ok || !creditsResponse.ok) {
         throw new Error("Failed to fetch dashboard data");
       }
 
-      const [statsData, historyData, networkData, volumeData] = await Promise.all([
-        statsResponse.json(),
-        historyResponse.json(),
-        networkResponse.ok ? networkResponse.json() : Promise.resolve({ data: [] }),
-        volumeResponse.ok ? volumeResponse.json() : Promise.resolve({ data: [] }),
-      ]);
+      const [statsData, historyData, networkData, volumeData, creditsData] =
+        await Promise.all([
+          statsResponse.json(),
+          historyResponse.json(),
+          networkResponse.ok
+            ? networkResponse.json()
+            : Promise.resolve({ data: [] }),
+          volumeResponse.ok
+            ? volumeResponse.json()
+            : Promise.resolve({ data: [] }),
+          creditsResponse.json(),
+        ]);
 
-      setSmsStats(statsData.data); 
+      // Extract SMS credits and balance from credits response
+      const smsCredits = creditsData.data?.balances?.SMS || 0;
+      const availableBalance = creditsData.data?.balances?.WALLET || 0; // Assuming you have a WALLET account type
+
+      // Merge the credit data with SMS stats
+      const mergedStats = {
+        ...statsData.data,
+        availableCredits: smsCredits,
+        availableBalance: availableBalance,
+      };
+
+      setSmsStats(mergedStats);
       setSmsHistory(historyData.data);
       setNetworkDistribution(networkData.data || []);
       setMessageVolumeData(volumeData.data || []);
-
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Failed to load dashboard data");
@@ -212,7 +242,7 @@ export default function DashboardHome() {
         <div className="text-base font-semibold text-muted-foreground">
           Your snapshot for today, {currentDateTime || "loading..."}
         </div>
-        
+
         {/* Loading skeletons for stats grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
@@ -338,10 +368,9 @@ export default function DashboardHome() {
               {smsStats?.totalFailed?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-red-900">
-              {smsStats?.totalSent ? 
-                `${((smsStats.totalFailed / smsStats.totalSent) * 100).toFixed(1)}% of total messages` : 
-                "0% of total messages"
-              }
+              {smsStats?.totalSent
+                ? `${((smsStats.totalFailed / smsStats.totalSent) * 100).toFixed(1)}% of total messages`
+                : "0% of total messages"}
             </p>
           </CardContent>
         </Card>
@@ -542,7 +571,9 @@ export default function DashboardHome() {
                     <div className="flex flex-col items-center justify-center text-muted-foreground">
                       <Inbox className="h-12 w-12 mb-4 opacity-50" />
                       <p>No SMS history found</p>
-                      <p className="text-sm">Send your first message to get started</p>
+                      <p className="text-sm">
+                        Send your first message to get started
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>

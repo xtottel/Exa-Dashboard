@@ -2,7 +2,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '@/middleware/auth';
-import { parentProviderService } from '@/services/parentProvider.service';
+import { kairosServerService } from '@/services/KairosServer.service';
 
 const prisma = new PrismaClient();
 
@@ -43,13 +43,13 @@ export const getSMSDetails = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get delivery status from provider if available
+    // Get delivery status from Kairos if available
     let deliveryStatus = null;
     if (sms.externalId) {
       try {
-        deliveryStatus = await parentProviderService.getDeliveryStatus(sms.externalId);
+        deliveryStatus = await kairosServerService.getDeliveryStatus(sms.externalId);
       } catch (error) {
-        console.error('Failed to get delivery status:', error);
+        console.error('Failed to get delivery status from Kairos:', error);
       }
     }
 
