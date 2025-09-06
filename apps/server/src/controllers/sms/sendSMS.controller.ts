@@ -104,7 +104,7 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
         senderId: validSenderId.id, // Store the UUID in database
         templateId,
         type: "OUTGOING",
-        status: "PENDING",
+        status: "pending",
         cost,
         messageId,
       },
@@ -131,11 +131,11 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
       });
 
       // Handle different provider response scenarios
-      let finalStatus = "FAILED";
+      let finalStatus = "failed";
       let shouldDeductCredits = false;
 
       if (providerResponse.success) {
-        finalStatus = "SENT";
+        finalStatus = "sent";
         shouldDeductCredits = true;
         console.log('✅ Provider successfully sent SMS');
       } else if (
@@ -229,7 +229,7 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
       await prisma.smsMessage.update({
         where: { id: smsRecord.id },
         data: {
-          status: "FAILED",
+          status: "failed",
           errorMessage:
             providerError instanceof Error
               ? providerError.message

@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, CreditCard } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
 type SenderId = {
-  id: string;
+id: string;
   status: "approved" | "pending" | "rejected";
   name: string;
 };
@@ -103,7 +103,7 @@ export default function SendSmsPage() {
 
         if (senderIdsResponse.ok) {
           const senderIdsData = await senderIdsResponse.json();
-          setSenderIds(senderIdsData.data || []);
+          setSenderIds(senderIdsData.data || [senderIdsData.name]);
         }
 
         if (templatesResponse.ok) {
@@ -448,7 +448,7 @@ export default function SendSmsPage() {
             Compose and send messages to your recipients
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <Card className="bg-blue-50">
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
@@ -467,7 +467,7 @@ export default function SendSmsPage() {
           >
             Buy Credits
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -481,7 +481,7 @@ export default function SendSmsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="contact-group">Contact Group</Label>
                 <Select
                   value={contactGroupId}
@@ -503,7 +503,7 @@ export default function SendSmsPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
                 <Label htmlFor="recipients">Recipients</Label>
@@ -555,6 +555,32 @@ export default function SendSmsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
+                <Label htmlFor="contact-group">Contact Group</Label>
+                <Select
+                  value={contactGroupId}
+                  onValueChange={handleContactGroupChange}
+                >
+                  <SelectTrigger id="contact-group">
+                    <SelectValue placeholder="Select a contact group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contactGroups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        <div className="flex items-center gap-2">
+                          {group.name}
+                          <Badge variant="outline" className="ml-2">
+                            {group.recipients} contacts
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+
+
+                <div className="space-y-2">
                   <Label htmlFor="sender-id">Sender ID</Label>
                   <Select value={senderId} onValueChange={setSenderId}>
                     <SelectTrigger id="sender-id">
@@ -564,7 +590,7 @@ export default function SendSmsPage() {
                       {senderIds
                         .filter((sender) => sender.status === "approved")
                         .map((sender) => (
-                          <SelectItem key={sender.id} value={sender.id}>
+                          <SelectItem key={sender.name} value={sender.name}>
                             <div className="flex items-center gap-2">
                               {sender.name}
                               {getStatusBadge(sender.status)}
@@ -605,7 +631,7 @@ export default function SendSmsPage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <span>
                       From:{" "}
-                      {senderIds.find((s) => s.id === senderId)?.name ||
+                      {senderIds.find((s) => s.name === senderId)?.name ||
                         "Not selected"}
                     </span>
                   </div>

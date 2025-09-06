@@ -241,11 +241,11 @@ export default function SenderIdPage() {
             <p className="text-xs text-muted-foreground">
               {newSenderId.length}/11 characters
             </p>
-            {newSenderId.trim() && (
+            {/* {newSenderId.trim() && (
               <p className="text-xs text-muted-foreground">
                 Will be saved as: <strong>{newSenderId.trim()}</strong>
               </p>
-            )}
+            )} */}
           </div>
           <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button 

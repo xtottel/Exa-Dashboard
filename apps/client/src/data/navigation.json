@@ -15,14 +15,6 @@
       ]
     },
     {
-      "title": "OTP",
-      "url": "/home/otp",
-      "items": [
-        { "title": "Overview", "url": "/home/otp/overview" },
-        { "title": "Reports", "url": "/home/otp/reports" }
-      ]
-    },
-    {
       "title": "Reports",
       "url": "/home/reports",
       "items": [
