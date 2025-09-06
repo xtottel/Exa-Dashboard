@@ -28,7 +28,7 @@ export const bulkSendSMS = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Calculate total cost
+    // Calculate total cost (in credits)
     const totalCost = recipients.reduce((total, recipient) => {
       return total + calculateMessageCost(message);
     }, 0);
@@ -169,7 +169,7 @@ async function processBulkSendInBackground(bulkSendId: string, recipients: strin
   }
 }
 
-// Helper functions (same as in sendSMS.controller.ts)
+// Helper functions
 function isValidGhanaPhoneNumber(phone: string): boolean {
   const ghanaPhoneRegex = /^(?:\+233|0)[234][0-9]{8}$/;
   return ghanaPhoneRegex.test(phone);
@@ -182,7 +182,8 @@ function normalizePhoneNumber(phone: string): string {
 function calculateMessageCost(message: string): number {
   const segmentLength = 160;
   const segments = Math.ceil(message.length / segmentLength);
-  return segments * 0.03;
+  // Return number of segments (credits) instead of monetary value
+  return segments;
 }
 
 function generateMessageId(): string {

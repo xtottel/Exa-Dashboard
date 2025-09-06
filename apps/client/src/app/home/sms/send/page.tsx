@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import {
@@ -21,9 +20,9 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-//import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 type SenderId = {
   id: string;
@@ -61,21 +60,33 @@ export default function SendSmsPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [contactGroups, setContactGroups] = useState<ContactGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [creditBalance, setCreditBalance] = useState<{
+    SMS: number;
+    WALLET: number;
+  }>({ SMS: 0, WALLET: 0 });
+  const [estimatedCost, setEstimatedCost] = useState(0);
+  const router = useRouter();
 
-  // Fetch data from API
+  // Fetch data from API including credit balance
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const token = localStorage.getItem("bearerToken");
-        
+
         if (!token) {
           toast.error("Please login again");
+          router.push("/login");
           return;
         }
 
-        // Fetch sender IDs
-        const [senderIdsResponse, templatesResponse, groupsResponse] = await Promise.all([
+        // Fetch all data including credit balance
+        const [
+          senderIdsResponse,
+          templatesResponse,
+          groupsResponse,
+          creditsResponse,
+        ] = await Promise.all([
           fetch("/api/sender-ids", {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -84,7 +95,10 @@ export default function SendSmsPage() {
           }),
           fetch("/api/contacts/groups", {
             headers: { Authorization: `Bearer ${token}` },
-          })
+          }),
+          fetch("/api/credit/balance", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
         if (senderIdsResponse.ok) {
@@ -102,6 +116,10 @@ export default function SendSmsPage() {
           setContactGroups(groupsData.data || []);
         }
 
+        if (creditsResponse.ok) {
+          const creditsData = await creditsResponse.json();
+          setCreditBalance(creditsData.data?.balances || { SMS: 0, WALLET: 0 });
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load data");
@@ -111,16 +129,16 @@ export default function SendSmsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [router]);
 
   // Parse recipients from textarea input
   useEffect(() => {
     if (newRecipient.trim()) {
       const parsedRecipients = newRecipient
         .split(/[,;\n\s]+/)
-        .map(r => r.trim())
-        .filter(r => r.length > 0 && /^[0-9+]+$/.test(r));
-      
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0 && /^[0-9+]+$/.test(r));
+
       const uniqueRecipients = [...new Set(parsedRecipients)];
       setRecipients(uniqueRecipients);
     } else {
@@ -128,23 +146,39 @@ export default function SendSmsPage() {
     }
   }, [newRecipient]);
 
+  // Update estimated cost when recipients or message changes
+  useEffect(() => {
+    if (recipients.length > 0 && message) {
+      const cost = calculateMessageCost(message) * recipients.length;
+      setEstimatedCost(cost);
+    } else {
+      setEstimatedCost(0);
+    }
+  }, [recipients, message]);
+
   // Handle contact group selection
   const handleContactGroupChange = async (groupId: string) => {
     setContactGroupId(groupId);
     if (groupId) {
       try {
         const token = localStorage.getItem("bearerToken");
-        const response = await fetch(`/api/contacts/groups/${groupId}/contacts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `/api/contacts/groups/${groupId}/contacts`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const groupRecipients = data.data.map((contact: any) => contact.phone).filter(Boolean);
+          
+          const groupRecipients = data.data
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((contact: any) => contact.phone)
+            .filter(Boolean);
           setNewRecipient(groupRecipients.join("\n"));
         }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error("Failed to load group contacts");
       }
@@ -160,12 +194,21 @@ export default function SendSmsPage() {
     }
   };
 
+  // Helper function to calculate message cost in credits
+  const calculateMessageCost = (text: string): number => {
+    const isUnicode = /[^\x00-\x7F]/.test(text);
+    const charsPerPart = isUnicode ? 70 : 160;
+    const segments = Math.ceil(text.length / charsPerPart);
+    return segments; // Return number of segments (credits)
+  };
+
   const updateMessageStats = (text: string) => {
     const count = text.length;
     setCharacterCount(count);
     const isUnicode = /[^\x00-\x7F]/.test(text);
     const charsPerPart = isUnicode ? 70 : 160;
-    setMessageParts(Math.ceil(count / charsPerPart));
+    const parts = Math.ceil(count / charsPerPart);
+    setMessageParts(parts);
   };
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -176,60 +219,123 @@ export default function SendSmsPage() {
 
   const sendSMS = async () => {
     setIsSending(true);
-    
+
     try {
       const token = localStorage.getItem("bearerToken");
-      
+
       if (!token) {
         toast.error("Please login again");
         return;
       }
 
-      const sendPromises = recipients.map(recipient => {
+      // Calculate total cost for all recipients (in credits)
+      const totalCost = recipients.length * calculateMessageCost(message);
+
+      // Check if we have enough credits locally first
+      if (creditBalance.SMS < totalCost) {
+        toast.error("Insufficient SMS credits", {
+          description: `You need ${totalCost.toFixed(0)} credits but only have ${creditBalance.SMS.toFixed(0)}`,
+          action: {
+            label: "Buy Credits",
+            onClick: () => router.push("/home/credits/buy"),
+          },
+        });
+        setIsSending(false);
+        return;
+      }
+
+      const sendPromises = recipients.map((recipient) => {
         return fetch("/api/sms/send", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            recipient,
-            message,
-            senderId,
-            templateId: templateId || undefined,
-          }),
+          // body: JSON.stringify({
+          //   recipient,
+          //   message,
+          //   senderId,
+          //   templateId: templateId || undefined,
+          // }),
+          // In the sendSMS function:
+         // In your handleSubmit function:
+body: JSON.stringify({
+  recipient,
+  message,
+  senderId: senderId, // This should be the UUID from your Select component
+  templateId: templateId || undefined,
+}),
+          
         });
       });
 
-      const toastId = toast.loading(`Sending ${messageParts * recipients.length} message parts to ${recipients.length} recipients...`);
+      const toastId = toast.loading(
+        `Sending ${messageParts * recipients.length} message parts to ${recipients.length} recipients...`
+      );
 
       const responses = await Promise.all(sendPromises);
-      
+
       let successCount = 0;
       let failedCount = 0;
-      
+      let insufficientCreditErrors = 0;
+
       for (const response of responses) {
-        if (response.ok) {
+        const result = await response.json();
+        if (response.ok && result.success) {
           successCount++;
         } else {
           failedCount++;
+          // Check if it's an insufficient credit error
+          if (result.data?.currentBalance !== undefined) {
+            insufficientCreditErrors++;
+          }
         }
       }
 
-      if (failedCount === 0) {
-        toast.success(`Successfully sent ${successCount * messageParts} message parts to ${recipients.length} recipients`, {
-          id: toastId,
-        });
+      // Refresh credit balance after sending
+      const creditsResponse = await fetch("/api/credit/balance", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (creditsResponse.ok) {
+        const creditsData = await creditsResponse.json();
+        setCreditBalance(creditsData.data?.balances || { SMS: 0, WALLET: 0 });
+      }
+
+      if (insufficientCreditErrors > 0) {
+        toast.error(
+          `Insufficient credits for ${insufficientCreditErrors} messages`,
+          {
+            id: toastId,
+            description: "Please top up your SMS credits",
+            action: {
+              label: "Buy Credits",
+              onClick: () => router.push("/home/credits/buy"),
+            },
+          }
+        );
+      } else if (failedCount === 0) {
+        toast.success(
+          `Successfully sent ${successCount * messageParts} message parts to ${recipients.length} recipients`,
+          {
+            id: toastId,
+          }
+        );
       } else if (successCount === 0) {
-        toast.error(`Failed to send messages to all ${recipients.length} recipients`, {
-          id: toastId,
-          description: "Please check your balance and try again",
-        });
+        toast.error(
+          `Failed to send messages to all ${recipients.length} recipients`,
+          {
+            id: toastId,
+            description: "Please check your balance and try again",
+          }
+        );
       } else {
-        toast.warning(`Sent ${successCount * messageParts} message parts successfully, ${failedCount} recipients failed`, {
-          id: toastId,
-          description: "Some messages may not have been delivered",
-        });
+        toast.warning(
+          `Sent ${successCount * messageParts} message parts successfully, ${failedCount} recipients failed`,
+          {
+            id: toastId,
+            description: "Some messages may not have been delivered",
+          }
+        );
       }
     } catch (error) {
       console.error("Error sending SMS:", error);
@@ -243,7 +349,7 @@ export default function SendSmsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!message.trim()) {
       toast.error("Please enter a message");
       return;
@@ -273,11 +379,15 @@ export default function SendSmsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Send SMS</h1>
-          <p className="text-muted-foreground">
-            Compose and send messages to your recipients
-          </p>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-12 w-32" />
+            <Skeleton className="h-9 w-24" />
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-[1fr_300px]">
@@ -338,11 +448,34 @@ export default function SendSmsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Send SMS</h1>
-        <p className="text-muted-foreground">
-          Compose and send messages to your recipients
-        </p>
+      {/* Header with credit balance */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Send SMS</h1>
+          <p className="text-muted-foreground">
+            Compose and send messages to your recipients
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Card className="bg-blue-50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium">SMS Credits:</span>
+                <span className="font-bold text-blue-700">
+                  {creditBalance.SMS.toFixed(0)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/home/credits/buy")}
+          >
+            Buy Credits
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -358,7 +491,10 @@ export default function SendSmsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="contact-group">Contact Group</Label>
-                <Select value={contactGroupId} onValueChange={handleContactGroupChange}>
+                <Select
+                  value={contactGroupId}
+                  onValueChange={handleContactGroupChange}
+                >
                   <SelectTrigger id="contact-group">
                     <SelectValue placeholder="Select a contact group" />
                   </SelectTrigger>
@@ -389,7 +525,8 @@ export default function SendSmsPage() {
                 />
                 {recipients.length > 0 && (
                   <div className="text-sm text-muted-foreground">
-                    {recipients.length} recipient{recipients.length !== 1 ? "s" : ""} detected
+                    {recipients.length} recipient
+                    {recipients.length !== 1 ? "s" : ""} detected
                   </div>
                 )}
               </div>
@@ -409,7 +546,9 @@ export default function SendSmsPage() {
                     {characterCount} character{characterCount !== 1 ? "s" : ""}
                   </span>
                   <span>
-                    {messageParts} part{messageParts !== 1 ? "s" : ""} × {recipients.length} recipients = {messageParts * recipients.length} total parts
+                    {messageParts} part{messageParts !== 1 ? "s" : ""} ×{" "}
+                    {recipients.length} recipients ={" "}
+                    {messageParts * recipients.length} total parts
                   </span>
                 </div>
               </div>
@@ -431,7 +570,7 @@ export default function SendSmsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {senderIds
-                        .filter(sender => sender.status === "approved")
+                        .filter((sender) => sender.status === "approved")
                         .map((sender) => (
                           <SelectItem key={sender.id} value={sender.id}>
                             <div className="flex items-center gap-2">
@@ -446,7 +585,10 @@ export default function SendSmsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="template">Template</Label>
-                  <Select value={templateId} onValueChange={handleTemplateChange}>
+                  <Select
+                    value={templateId}
+                    onValueChange={handleTemplateChange}
+                  >
                     <SelectTrigger id="template">
                       <SelectValue placeholder="Select a template" />
                     </SelectTrigger>
@@ -469,7 +611,11 @@ export default function SendSmsPage() {
               <CardContent>
                 <div className="rounded-lg border bg-muted/50 p-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                    <span>From: {senderIds.find(s => s.id === senderId)?.name || "Not selected"}</span>
+                    <span>
+                      From:{" "}
+                      {senderIds.find((s) => s.id === senderId)?.name ||
+                        "Not selected"}
+                    </span>
                   </div>
                   <div className="whitespace-pre-wrap text-sm">
                     {message || (
@@ -479,18 +625,36 @@ export default function SendSmsPage() {
                     )}
                   </div>
                   {recipients.length > 0 && (
-                    <div className="mt-4 pt-2 border-t text-sm text-muted-foreground">
-                      To: {recipients.length} recipient
-                      {recipients.length !== 1 ? "s" : ""}
+                    <div className="mt-4 pt-2 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        To: {recipients.length} recipient
+                        {recipients.length !== 1 ? "s" : ""}
+                      </div>
+                      <div className="text-sm font-medium mt-1">
+                        Estimated cost: {estimatedCost.toFixed(0)} credits
+                      </div>
+                      {creditBalance.SMS < estimatedCost && (
+                        <div className="text-sm text-red-500 mt-1">
+                          Insufficient credits! Need{" "}
+                          {(estimatedCost - creditBalance.SMS).toFixed(0)} more
+                          credits
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  className="w-full md:w-auto" 
-                  disabled={isSending || recipients.length === 0 || !senderId || !message}
+                <Button
+                  type="submit"
+                  className="w-full md:w-auto"
+                  disabled={
+                    isSending ||
+                    recipients.length === 0 ||
+                    !senderId ||
+                    !message ||
+                    creditBalance.SMS < estimatedCost
+                  }
                 >
                   {isSending ? (
                     <>
