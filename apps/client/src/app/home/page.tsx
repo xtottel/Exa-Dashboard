@@ -47,12 +47,32 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 // Types for API responses
+interface CreditBalance {
+  SMS: number;
+  WALLET: number;
+}
+
 interface SMSStats {
-  totalSent: number;
-  totalDelivered: number;
-  totalFailed: number;
-  availableCredits: number;
-  availableBalance: number;
+  totals: {
+    messages: number;
+    cost: number;
+    averageCost: number;
+  };
+  byStatus: Array<{
+    status: string;
+    _count: { id: number };
+    _sum: { cost: number };
+  }>;
+  timeline: Array<{
+    date: string;
+    messages: number;
+    cost: number;
+  }>;
+  topRecipients: Array<{
+    recipient: string;
+    messages: number;
+    cost: number;
+  }>;
 }
 
 interface SMSHistory {
@@ -89,6 +109,7 @@ const getStatusBadge = (status: SMSHistory["status"]) => {
 
 export default function DashboardHome() {
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
+  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
   const [smsStats, setSmsStats] = useState<SMSStats | null>(null);
   const [smsHistory, setSmsHistory] = useState<SMSHistory[]>([]);
   const [networkDistribution, setNetworkDistribution] = useState<
@@ -148,13 +169,18 @@ export default function DashboardHome() {
 
       // Fetch all data in parallel
       const [
+        creditsResponse,
         statsResponse,
         historyResponse,
         networkResponse,
         volumeResponse,
-        creditsResponse,
       ] = await Promise.all([
-        fetch("/api/sms/stats/overview", {
+        fetch("/api/credit/balance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch("/api/sms/stats?period=30d", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -174,45 +200,52 @@ export default function DashboardHome() {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("/api/credits/balance", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
       ]);
 
-      if (!statsResponse.ok || !historyResponse.ok || !creditsResponse.ok) {
-        throw new Error("Failed to fetch dashboard data");
+      // Handle credit balance response
+      if (creditsResponse.ok) {
+        const creditsData = await creditsResponse.json();
+        setCreditBalance(creditsData.data?.balances || { SMS: 0, WALLET: 0 });
+      } else {
+        console.error("Failed to fetch credit balance");
+        setCreditBalance({ SMS: 0, WALLET: 0 });
       }
 
-      const [statsData, historyData, networkData, volumeData, creditsData] =
-        await Promise.all([
-          statsResponse.json(),
-          historyResponse.json(),
-          networkResponse.ok
-            ? networkResponse.json()
-            : Promise.resolve({ data: [] }),
-          volumeResponse.ok
-            ? volumeResponse.json()
-            : Promise.resolve({ data: [] }),
-          creditsResponse.json(),
-        ]);
+      // Handle SMS stats response
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setSmsStats(statsData.data);
+      } else {
+        console.error("Failed to fetch SMS stats");
+        setSmsStats(null);
+      }
 
-      // Extract SMS credits and balance from credits response
-      const smsCredits = creditsData.data?.balances?.SMS || 0;
-      const availableBalance = creditsData.data?.balances?.WALLET || 0; // Assuming you have a WALLET account type
+      // Handle SMS history response
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        setSmsHistory(historyData.data || []);
+      } else {
+        console.error("Failed to fetch SMS history");
+        setSmsHistory([]);
+      }
 
-      // Merge the credit data with SMS stats
-      const mergedStats = {
-        ...statsData.data,
-        availableCredits: smsCredits,
-        availableBalance: availableBalance,
-      };
+      // Handle network distribution response
+      if (networkResponse.ok) {
+        const networkData = await networkResponse.json();
+        setNetworkDistribution(networkData.data || []);
+      } else {
+        console.error("Failed to fetch network distribution");
+        setNetworkDistribution([]);
+      }
 
-      setSmsStats(mergedStats);
-      setSmsHistory(historyData.data);
-      setNetworkDistribution(networkData.data || []);
-      setMessageVolumeData(volumeData.data || []);
+      // Handle message volume response
+      if (volumeResponse.ok) {
+        const volumeData = await volumeResponse.json();
+        setMessageVolumeData(volumeData.data || []);
+      } else {
+        console.error("Failed to fetch message volume");
+        setMessageVolumeData([]);
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Failed to load dashboard data");
@@ -234,6 +267,29 @@ export default function DashboardHome() {
     };
     const formattedDate = new Intl.DateTimeFormat("en-GB", options).format(now);
     setCurrentDateTime(formattedDate + " (Accra / GMT)");
+  };
+
+  // Calculate stats from the API response
+  const getTotalSent = () => {
+    if (!smsStats) return 0;
+    return smsStats.totals?.messages || 0;
+  };
+
+  const getTotalFailed = () => {
+    if (!smsStats || !smsStats.byStatus) return 0;
+    const failedStatus = smsStats.byStatus.find(
+      (item) => item.status === "failed"
+    );
+    return failedStatus?._count?.id || 0;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getTotalDelivered = () => {
+    if (!smsStats || !smsStats.byStatus) return 0;
+    const deliveredStatus = smsStats.byStatus.find(
+      (item) => item.status === "delivered"
+    );
+    return deliveredStatus?._count?.id || 0;
   };
 
   if (isLoading) {
@@ -322,7 +378,7 @@ export default function DashboardHome() {
           <CardContent>
             <div className="text-2xl font-bold">
               <span className="text-base font-medium">GH₵</span>{" "}
-              {smsStats?.availableBalance?.toLocaleString() || "0.00"}
+              {creditBalance?.WALLET?.toLocaleString() || "0.00"}
             </div>
             <p className="text-xs text-yellow-900">Real-time balance</p>
           </CardContent>
@@ -335,7 +391,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {smsStats?.availableCredits?.toLocaleString() || "0"}
+              {creditBalance?.SMS?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-blue-900">Available credits</p>
           </CardContent>
@@ -350,7 +406,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {smsStats?.totalSent?.toLocaleString() || "0"}
+              {getTotalSent()?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-green-900">All-time messages</p>
           </CardContent>
@@ -365,11 +421,11 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {smsStats?.totalFailed?.toLocaleString() || "0"}
+              {getTotalFailed()?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-red-900">
-              {smsStats?.totalSent
-                ? `${((smsStats.totalFailed / smsStats.totalSent) * 100).toFixed(1)}% of total messages`
+              {getTotalSent()
+                ? `${((getTotalFailed() / getTotalSent()) * 100).toFixed(1)}% of total messages`
                 : "0% of total messages"}
             </p>
           </CardContent>
