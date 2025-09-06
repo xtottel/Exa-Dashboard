@@ -1,3 +1,5 @@
+
+
 // controllers/sms/sendSMS.controller.ts
 import { Response } from "express";
 import { PrismaClient, AccountType } from "@prisma/client";
@@ -30,14 +32,14 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
       console.log('❌ Validation failed: Invalid Ghana phone number format:', recipient);
       return res.status(400).json({
         success: false,
-        message: "Invalid Ghana phone number format. Use format: 0244123456 or +233244123456",
+        message: "Invalid Ghana phone number format. Use format: 0244123456, 0551196764 or +233244123456",
       });
     }
 
     console.log('✅ Phone number validation passed:', recipient);
 
     // Validate sender ID belongs to business and is approved
-    const validSenderId = await validateSenderId(businessId, senderId);
+    const validSenderId = await validateSenderId(businessId, senderId, req.user.token);
     if (!validSenderId) {
       console.log('❌ Validation failed: Invalid or unapproved sender ID:', senderId);
       return res.status(400).json({
@@ -99,7 +101,7 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
         businessId,
         recipient: normalizedPhone,
         message,
-        senderId: validSenderId.id,
+        senderId: validSenderId.id, // Store the UUID in database
         templateId,
         type: "OUTGOING",
         status: "PENDING",
@@ -112,22 +114,14 @@ export const sendSMS = async (req: AuthRequest, res: Response) => {
 
     try {
       console.log('📤 Sending to Kairos provider...');
-      // Send to Kairos provider
-      // const providerResponse = await kairosServerService.sendSMS({
-      //   recipient: normalizedPhone,
-      //   message,
-      //   senderId: validSenderId.name,
-      //   messageId,
-      // });
-
-      // In the main sendSMS function, after validation:
-// After validation, make sure to use validSenderId.name (not .id)
-const providerResponse = await kairosServerService.sendSMS({
-  recipient: normalizedPhone,
-  message,
-  senderId: validSenderId.name, // ← This is the critical fix
-  messageId,
-});
+      
+      // CRITICAL FIX: Send the sender NAME (not UUID) to Kairos
+      const providerResponse = await kairosServerService.sendSMS({
+        recipient: normalizedPhone,
+        message,
+        senderId: validSenderId.name, // ← Use the name, not the UUID
+        messageId,
+      });
 
       console.log('📨 Provider response received:', {
         success: providerResponse.success,
@@ -262,11 +256,6 @@ const providerResponse = await kairosServerService.sendSMS({
 };
 
 // Helper functions
-// function isValidGhanaPhoneNumber(phone: string): boolean {
-//   const ghanaPhoneRegex = /^(?:\+233|0)[234][0-9]{8}$/;
-//   return ghanaPhoneRegex.test(phone);
-// }
-
 function isValidGhanaPhoneNumber(phone: string): boolean {
   // Allow formats: 0244123456, 233244123456, +233244123456, 0551196764
   const ghanaPhoneRegex = /^(?:\+233|233|0)[2345][0-9]{8}$/;
@@ -285,13 +274,13 @@ function normalizePhoneNumber(phone: string): string {
     return normalized;
   }
   
-  // If it doesn't match expected formats, return as-is (let Kairos validate)
+  // If it doesn't match expected formats, return as-is
   return normalized;
 }
+
 function calculateMessageCost(message: string): number {
   const segmentLength = 160;
   const segments = Math.ceil(message.length / segmentLength);
-  // Return number of segments (credits) instead of monetary value
   return segments;
 }
 
@@ -300,9 +289,7 @@ function generateMessageId(): string {
 }
 
 async function validateSenderId(
-  businessId: string,
-  senderId: string | undefined
-) {
+businessId: string, senderId: string | undefined, token: any) {
   console.log('🔍 Validating sender ID:', senderId, 'for business:', businessId);
   
   try {
@@ -312,9 +299,9 @@ async function validateSenderId(
       result = await prisma.senderId.findFirst({
         where: {
           businessId,
-          status: "APPROVED",
+          status: 'approved' // Make sure this matches your database
         },
-        orderBy: { createdAt: 'desc' }, // Get the most recent
+        orderBy: { createdAt: 'desc' },
       });
     } else {
       // Validate the specific sender ID belongs to this business and is approved
@@ -322,7 +309,7 @@ async function validateSenderId(
         where: {
           id: senderId,
           businessId,
-          status: "APPROVED",
+          status: 'approved' // Make sure this matches your database
         },
       });
     }

@@ -4,7 +4,8 @@ import {
   createSenderId,
   getSenderIds,
   updateSenderId,
-  deleteSenderId
+  deleteSenderId,
+  verifySenderId // Add this import
 } from '@/controllers/sender-id';
 
 const router = Router();
@@ -15,5 +16,6 @@ router.post('/', createSenderId);
 router.get('/', getSenderIds);
 router.put('/:id', updateSenderId);
 router.delete('/:id', deleteSenderId);
+router.post('/verify', verifySenderId); // Add this new route
 
 export { router as senderIdRoutes };

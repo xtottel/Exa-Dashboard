@@ -171,7 +171,7 @@ export default function SendSmsPage() {
 
         if (response.ok) {
           const data = await response.json();
-          
+
           const groupRecipients = data.data
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((contact: any) => contact.phone)
@@ -251,21 +251,13 @@ export default function SendSmsPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          // body: JSON.stringify({
-          //   recipient,
-          //   message,
-          //   senderId,
-          //   templateId: templateId || undefined,
-          // }),
-          // In the sendSMS function:
-         // In your handleSubmit function:
-body: JSON.stringify({
-  recipient,
-  message,
-  senderId: senderId, // This should be the UUID from your Select component
-  templateId: templateId || undefined,
-}),
-          
+      
+          body: JSON.stringify({
+            recipient,
+            message,
+            senderId: senderId, 
+            templateId: templateId || undefined,
+          }),
         });
       });
 

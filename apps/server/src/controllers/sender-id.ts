@@ -153,6 +153,57 @@ export const updateSenderId = async (req: AuthRequest, res: Response) => {
   }
 };
 
+
+// Add this new function to your sender-id controller
+export const verifySenderId = async (req: AuthRequest, res: Response) => {
+  try {
+    const { senderId } = req.body;
+    const businessId = req.user.businessId;
+
+    if (!senderId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Sender ID is required'
+      });
+    }
+
+    // Check if sender ID exists and is approved for this business
+    const validSenderId = await prisma.senderId.findFirst({
+      where: {
+        id: senderId,
+        businessId,
+        status: 'approved' // Make sure this matches your database status
+      },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        atWhitelisted: true
+      }
+    });
+
+    if (!validSenderId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sender ID not found or not approved'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Sender ID is valid and approved',
+      data: validSenderId
+    });
+
+  } catch (error) {
+    console.error('Verify sender ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify sender ID'
+    });
+  }
+};
+
 export const deleteSenderId = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
