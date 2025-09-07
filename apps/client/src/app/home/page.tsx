@@ -588,7 +588,7 @@ export default function DashboardHome() {
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Sender ID</TableHead>
-                <TableHead>Cost</TableHead>
+                <TableHead>Credits</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
@@ -607,7 +607,7 @@ export default function DashboardHome() {
                   <TableCell>
                     <Badge variant="outline">{sms.senderId}</Badge>
                   </TableCell>
-                  <TableCell>GHS {sms.cost.toFixed(2)}</TableCell>
+                  <TableCell>{sms.cost}</TableCell>
                   <TableCell>
                     {new Date(sms.createdAt).toLocaleString()}
                   </TableCell>

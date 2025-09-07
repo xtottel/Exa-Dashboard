@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
 type SenderId = {
-id: string;
+  id: string;
   status: "approved" | "pending" | "rejected";
   name: string;
 };
@@ -217,6 +217,13 @@ export default function SendSmsPage() {
     updateMessageStats(text);
   };
 
+  function isValidGhanaPhoneNumber(phone: string): boolean {
+    // Allow formats: 0244123456, 233244123456, +233244123456, 0551196764, 233551196764
+    const ghanaPhoneRegex = /^(?:\+233|233|0)[2345][0-9]{8}$/;
+    return ghanaPhoneRegex.test(phone.replace(/\s/g, ""));
+  }
+
+  // In your sendSMS function in page.tsx
   const sendSMS = async () => {
     setIsSending(true);
 
@@ -251,11 +258,10 @@ export default function SendSmsPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-      
           body: JSON.stringify({
             recipient,
             message,
-            senderId: senderId, 
+            senderId: senderId,
             templateId: templateId || undefined,
           }),
         });
@@ -270,6 +276,7 @@ export default function SendSmsPage() {
       let successCount = 0;
       let failedCount = 0;
       let insufficientCreditErrors = 0;
+      let senderIdErrors = 0;
 
       for (const response of responses) {
         const result = await response.json();
@@ -280,6 +287,13 @@ export default function SendSmsPage() {
           // Check if it's an insufficient credit error
           if (result.data?.currentBalance !== undefined) {
             insufficientCreditErrors++;
+          }
+          // Check if it's a sender ID error
+          if (
+            result.errorType === "SENDER_ID_NOT_APPROVED" ||
+            result.errorType === "NO_APPROVED_SENDER_ID"
+          ) {
+            senderIdErrors++;
           }
         }
       }
@@ -293,7 +307,17 @@ export default function SendSmsPage() {
         setCreditBalance(creditsData.data?.balances || { SMS: 0, WALLET: 0 });
       }
 
-      if (insufficientCreditErrors > 0) {
+      // Handle different error types with specific messages
+      if (senderIdErrors > 0) {
+        toast.error(`Sender ID issues for ${senderIdErrors} messages`, {
+          id: toastId,
+          description: "Please check your sender ID approval status",
+          action: {
+            label: "Manage Sender IDs",
+            onClick: () => router.push("/home/settings/sender-ids"),
+          },
+        });
+      } else if (insufficientCreditErrors > 0) {
         toast.error(
           `Insufficient credits for ${insufficientCreditErrors} messages`,
           {
@@ -352,6 +376,17 @@ export default function SendSmsPage() {
       return;
     }
 
+    // Validate all recipient numbers before sending
+    const invalidRecipients = recipients.filter(
+      (recipient) => !isValidGhanaPhoneNumber(recipient)
+    );
+    if (invalidRecipients.length > 0) {
+      toast.error(
+        `Invalid phone number format: ${invalidRecipients.join(", ")}`
+      );
+      return;
+    }
+
     if (!senderId) {
       toast.error("Please select a sender ID");
       return;
@@ -376,10 +411,10 @@ export default function SendSmsPage() {
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-64" />
           </div>
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <Skeleton className="h-12 w-32" />
             <Skeleton className="h-9 w-24" />
-          </div>
+          </div> */}
         </div>
 
         <div className="grid gap-6 md:grid-cols-[1fr_300px]">
@@ -448,26 +483,6 @@ export default function SendSmsPage() {
             Compose and send messages to your recipients
           </p>
         </div>
-        {/* <div className="flex items-center gap-4">
-          <Card className="bg-blue-50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">SMS Credits:</span>
-                <span className="font-bold text-blue-700">
-                  {creditBalance.SMS.toFixed(0)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/home/credits/buy")}
-          >
-            Buy Credits
-          </Button>
-        </div> */}
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -481,30 +496,6 @@ export default function SendSmsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* <div className="space-y-2">
-                <Label htmlFor="contact-group">Contact Group</Label>
-                <Select
-                  value={contactGroupId}
-                  onValueChange={handleContactGroupChange}
-                >
-                  <SelectTrigger id="contact-group">
-                    <SelectValue placeholder="Select a contact group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contactGroups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
-                        <div className="flex items-center gap-2">
-                          {group.name}
-                          <Badge variant="outline" className="ml-2">
-                            {group.recipients} contacts
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div> */}
-
               <div className="space-y-2">
                 <Label htmlFor="recipients">Recipients</Label>
                 <Textarea
@@ -555,30 +546,28 @@ export default function SendSmsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                <Label htmlFor="contact-group">Contact Group</Label>
-                <Select
-                  value={contactGroupId}
-                  onValueChange={handleContactGroupChange}
-                >
-                  <SelectTrigger id="contact-group">
-                    <SelectValue placeholder="Select a contact group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contactGroups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
-                        <div className="flex items-center gap-2">
-                          {group.name}
-                          <Badge variant="outline" className="ml-2">
-                            {group.recipients} contacts
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-
+                  <Label htmlFor="contact-group">Contact Group</Label>
+                  <Select
+                    value={contactGroupId}
+                    onValueChange={handleContactGroupChange}
+                  >
+                    <SelectTrigger id="contact-group">
+                      <SelectValue placeholder="Select a contact group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contactGroups.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          <div className="flex items-center gap-2">
+                            {group.name}
+                            <Badge variant="outline" className="ml-2">
+                              {group.recipients} contacts
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="sender-id">Sender ID</Label>
@@ -591,6 +580,8 @@ export default function SendSmsPage() {
                         .filter((sender) => sender.status === "approved")
                         .map((sender) => (
                           <SelectItem key={sender.name} value={sender.name}>
+                            {" "}
+                            {/* Use sender.id instead of sender.name */}
                             <div className="flex items-center gap-2">
                               {sender.name}
                               {getStatusBadge(sender.status)}

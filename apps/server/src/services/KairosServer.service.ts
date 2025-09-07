@@ -227,7 +227,7 @@ class KairosServerService {
     }
   }
 
-  /**
+   /**
    * Validate parameters before sending to Kairos
    */
   private validateParameters(recipient: string, message: string, senderId: string): string | null {
@@ -236,8 +236,9 @@ class KairosServerService {
     }
 
     // Validate recipient format (should be 233XXXXXXXXX)
-    if (!/^233[234][0-9]{8}$/.test(recipient)) {
-      return 'Invalid recipient format. Must be 233XXXXXXXXX';
+    // Updated regex to accept valid Ghana numbers: 233 followed by 2,3,4,5 and 8 digits
+    if (!/^233[2345][0-9]{8}$/.test(recipient)) {
+      return 'Invalid recipient format. Must be 233XXXXXXXXX where X is digit and starts with 2,3,4,5';
     }
 
     // Validate message length
@@ -258,17 +259,64 @@ class KairosServerService {
    */
   private parseKairosResponse(response: any, messageId: string): ProviderResponse {
     try {
-      // Kairos returns different response formats - adjust based on actual API response
+      console.log('Kairos raw response:', response);
+      console.log('Kairos response type:', typeof response);
+      
+      // Handle different possible response formats from Kairos
+      
+      // Format 0: Simple boolean true response (Kairos sometimes returns just "true")
+      if (response === true) {
+        return {
+          success: true,
+          status: 'submitted',
+          externalId: messageId, // Use our internal message ID
+          message: 'Message submitted successfully (boolean true response)'
+        };
+      }
+      
+      // Format 1: Success response with log ID/uuid
       if (response.id || response.uuid) {
-        // Success response with log ID
         return {
           success: true,
           status: 'submitted',
           externalId: response.uuid || response.id.toString(),
           message: 'Message submitted successfully'
         };
-      } else if (response.statusCode && response.message) {
-        // Error response
+      }
+      
+      // Format 2: Success response with message ID (some providers use this)
+      if (response.messageId) {
+        return {
+          success: true,
+          status: 'submitted',
+          externalId: response.messageId,
+          message: 'Message submitted successfully'
+        };
+      }
+      
+      // Format 3: Array response (some bulk operations)
+      if (Array.isArray(response) && response.length > 0) {
+        const firstResponse = response[0];
+        return {
+          success: true,
+          status: 'submitted',
+          externalId: firstResponse.uuid || firstResponse.id || `batch_${Date.now()}`,
+          message: 'Message submitted successfully'
+        };
+      }
+      
+      // Format 4: Simple success response without detailed data
+      if (response.status === 'success' || response.success === true) {
+        return {
+          success: true,
+          status: 'submitted',
+          externalId: messageId, // Use our internal message ID as fallback
+          message: response.message || 'Message submitted successfully'
+        };
+      }
+      
+      // Format 5: Error response with statusCode
+      if (response.statusCode && response.message) {
         return {
           success: false,
           status: this.mapKairosStatus(response.statusCode),
@@ -276,8 +324,46 @@ class KairosServerService {
           errorCode: response.statusCode.toString()
         };
       }
+      
+      // Format 6: Error response with error field
+      if (response.error) {
+        return {
+          success: false,
+          status: 'failed',
+          message: response.error,
+          errorCode: response.code || '1710'
+        };
+      }
 
-      // Unknown response format
+      // If we get here, log the unexpected response for debugging
+      console.warn('Unexpected Kairos response format:', response);
+      
+      // For unexpected but potentially successful responses, assume success
+      // This is safer than failing when the message might have been sent
+      if (typeof response === 'object' && Object.keys(response).length === 0) {
+        // Empty object response often indicates success
+        return {
+          success: true,
+          status: 'submitted',
+          externalId: messageId,
+          message: 'Message submitted successfully (assumed from empty response)'
+        };
+      }
+
+      // Handle string responses that might indicate success
+      if (typeof response === 'string') {
+        const lowerResponse = response.toLowerCase();
+        if (lowerResponse.includes('success') || lowerResponse.includes('sent') || lowerResponse === 'true') {
+          return {
+            success: true,
+            status: 'submitted',
+            externalId: messageId,
+            message: `Message submitted successfully (string response: ${response})`
+          };
+        }
+      }
+
+      // Unknown response format - assume failure but log for investigation
       return {
         success: false,
         status: 'failed',

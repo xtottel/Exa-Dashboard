@@ -12,7 +12,7 @@ const router = Router();
 router.post('/send', authenticateToken, smsController.sendSMS);
 
 // Bulk Send SMS
-router.post('/bulk-send', authenticateToken, smsController.bulkSendSMS);
+//router.post('/bulk-send', authenticateToken, smsController.bulkSendSMS);
 
 // Get SMS history
 router.get('/history', authenticateToken, smsController.getSMSHistory);
